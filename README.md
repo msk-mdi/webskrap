@@ -14,7 +14,7 @@ WebSkrap does not include CAPTCHA solving, login-wall bypassing, credential bypa
 ## Install
 
 ```bash
-pip install -e ".[dev]"
+pip install webskrap
 python -m playwright install chromium
 ```
 
