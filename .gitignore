@@ -10,5 +10,4 @@ dist/
 build/
 *.egg-info/
 .webskrap/
-webskrap-*.png
 test.py
