@@ -52,6 +52,16 @@ Pass `human=False` to use the same helper while delegating directly to Playwrigh
 await session.human_click(page, "label[for='radio1']", human=False, timeout=5_000)
 ```
 
+Enable the cursor hint in a headed browser to show a red dot at the automated mouse
+position while debugging. The hint is scoped to the current page document, so enable it
+again after navigation if needed.
+
+```python
+await session.enable_cursor_hint(page)
+await session.human_click(page, "label[for='radio1']")
+await session.disable_cursor_hint(page)
+```
+
 ## Common Options
 
 ```python

@@ -15,6 +15,54 @@ from webskrap.stealth import apply_stealth
 
 WaitUntil = Literal["commit", "domcontentloaded", "load", "networkidle"]
 
+_CURSOR_HINT_ENABLE_SCRIPT = """
+() => {
+    const markerId = "__webskrap_cursor_hint";
+    if (window.__webskrapCursorHint) {
+        return;
+    }
+
+    const marker = document.createElement("div");
+    marker.id = markerId;
+    marker.setAttribute("aria-hidden", "true");
+    Object.assign(marker.style, {
+        position: "fixed",
+        left: "0px",
+        top: "0px",
+        width: "12px",
+        height: "12px",
+        borderRadius: "50%",
+        background: "rgba(255, 0, 0, 0.9)",
+        border: "2px solid rgba(255, 255, 255, 0.95)",
+        boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 12px rgba(255, 0, 0, 0.65)",
+        transform: "translate(-50%, -50%)",
+        pointerEvents: "none",
+        zIndex: "2147483647",
+    });
+
+    const move = (event) => {
+        marker.style.left = `${event.clientX}px`;
+        marker.style.top = `${event.clientY}px`;
+    };
+
+    document.documentElement.appendChild(marker);
+    window.__webskrapCursorHint = { marker, move };
+    window.addEventListener("mousemove", move, true);
+}
+"""
+
+_CURSOR_HINT_DISABLE_SCRIPT = """
+() => {
+    const state = window.__webskrapCursorHint;
+    if (!state) {
+        return;
+    }
+    window.removeEventListener("mousemove", state.move, true);
+    state.marker.remove();
+    delete window.__webskrapCursorHint;
+}
+"""
+
 
 class WebSkrapError(RuntimeError):
     pass
@@ -135,6 +183,14 @@ class WebSkrapSession:
         finally:
             for modifier in reversed(modifiers):
                 await page.keyboard.up(modifier)
+
+    async def enable_cursor_hint(self, page: Page) -> None:
+        self._ensure_open()
+        await page.evaluate(_CURSOR_HINT_ENABLE_SCRIPT)
+
+    async def disable_cursor_hint(self, page: Page) -> None:
+        self._ensure_open()
+        await page.evaluate(_CURSOR_HINT_DISABLE_SCRIPT)
 
     async def close(self) -> None:
         if self._closed:

@@ -103,6 +103,15 @@ await page.goto("https://example.com", wait_until="domcontentloaded")
 await session.human_click(page, "label[for='radio1']")
 ```
 
+Enable the cursor hint in a headed browser when you want to see a red dot follow the
+automated mouse movement. Re-enable it after navigation if you still need it.
+
+```python
+await session.enable_cursor_hint(page)
+await session.human_click(page, "label[for='radio1']")
+await session.disable_cursor_hint(page)
+```
+
 Example for a headed Chrome session with a French desktop profile:
 
 ```python

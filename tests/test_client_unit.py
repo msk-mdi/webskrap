@@ -74,6 +74,7 @@ class _Page:
         self.mouse = _Mouse()
         self.keyboard = _Keyboard()
         self.clicks: list[tuple[str, dict[str, object]]] = []
+        self.evaluations: list[str] = []
         self.timeouts: list[float] = []
         self.locators: list[str] = []
 
@@ -86,6 +87,9 @@ class _Page:
 
     async def wait_for_timeout(self, timeout: float) -> None:
         self.timeouts.append(timeout)
+
+    async def evaluate(self, script: str) -> None:
+        self.evaluations.append(script)
 
 
 def _session() -> WebSkrapSession:
@@ -182,3 +186,32 @@ async def test_human_click_raises_for_missing_bounding_box() -> None:
 
     with pytest.raises(WebSkrapError, match="visible bounding box"):
         await _session().human_click(page, "label[for='radio1']")  # type: ignore[arg-type]
+
+
+@pytest.mark.asyncio
+async def test_enable_cursor_hint_injects_guarded_marker_script() -> None:
+    page = _Page()
+
+    await _session().enable_cursor_hint(page)  # type: ignore[arg-type]
+
+    assert len(page.evaluations) == 1
+    script = page.evaluations[0]
+    assert "__webskrapCursorHint" in script
+    assert "if (window.__webskrapCursorHint)" in script
+    assert "rgba(255, 0, 0, 0.9)" in script
+    assert "mousemove" in script
+    assert "pointerEvents" in script
+
+
+@pytest.mark.asyncio
+async def test_disable_cursor_hint_injects_idempotent_cleanup_script() -> None:
+    page = _Page()
+
+    await _session().disable_cursor_hint(page)  # type: ignore[arg-type]
+
+    assert len(page.evaluations) == 1
+    script = page.evaluations[0]
+    assert "__webskrapCursorHint" in script
+    assert "if (!state)" in script
+    assert "removeEventListener" in script
+    assert "state.marker.remove()" in script
