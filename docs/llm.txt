@@ -1,0 +1,58 @@
+# WebSkrap
+
+WebSkrap is an async-first Python scraping framework built on Playwright.
+
+Repository: https://github.com/kacigaya/webskrap
+Documentation: https://kacigaya.github.io/webskrap/
+Package: https://pypi.org/project/webskrap/
+
+## Install
+
+```bash
+pip install webskrap
+python -m playwright install chromium
+```
+
+## Core API
+
+- `WebSkrapClient`: async context manager for Playwright lifecycle.
+- `WebSkrapSession`: persistent browser context wrapper.
+- `SessionConfig`: browser launch and context settings.
+- `BrowserProfile`: coherent browser-visible profile settings.
+- `StealthConfig`: configurable browser hardening toggles.
+- `FetchResult`: structured result returned from fetches.
+
+## Example
+
+```python
+import asyncio
+
+from webskrap import WebSkrapClient
+
+
+async def main() -> None:
+    async with WebSkrapClient() as client:
+        result = await client.fetch("https://example.com")
+        print(result.status)
+        print(result.title)
+
+
+asyncio.run(main())
+```
+
+## Boundaries
+
+WebSkrap does not include CAPTCHA solving, login-wall bypassing, credential bypassing, or access-control circumvention.
+
+## Important Links
+
+- Home: /
+- Installation: /getting-started/installation/
+- Quickstart: /getting-started/quickstart/
+- Client: /user-guide/client/
+- Sessions: /user-guide/sessions/
+- Profiles: /user-guide/profiles/
+- Stealth: /user-guide/stealth/
+- Resource Policy: /user-guide/resource-policy/
+- CLI: /user-guide/cli/
+- API Reference: /api-reference/

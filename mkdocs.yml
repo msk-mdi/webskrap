@@ -1,0 +1,71 @@
+site_name: WebSkrap
+site_description: Async-first Python scraping framework built on Playwright.
+site_url: https://kacigaya.github.io/webskrap/
+repo_url: https://github.com/kacigaya/webskrap
+repo_name: kacigaya/webskrap
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  logo: assets/webskrap-logo.png
+  favicon: assets/webskrap-logo.png
+  features:
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+  palette:
+    - scheme: default
+      primary: cyan
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: cyan
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quickstart: getting-started/quickstart.md
+  - User Guide:
+      - Client: user-guide/client.md
+      - Sessions: user-guide/sessions.md
+      - Profiles: user-guide/profiles.md
+      - Stealth: user-guide/stealth.md
+      - Resource Policy: user-guide/resource-policy.md
+      - CLI: user-guide/cli.md
+  - API Reference: api-reference.md
+  - Development: development.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            show_source: true
+            show_root_heading: true
+            show_signature_annotations: true
+            separate_signature: true
