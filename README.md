@@ -92,6 +92,17 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
+## Human-like Clicks
+
+Use `human_click` when a manual interaction should include visible-element waits, scrolling,
+short pauses, and mouse movement before the click.
+
+```python
+page = await session.context.new_page()
+await page.goto("https://example.com", wait_until="domcontentloaded")
+await session.human_click(page, "label[for='radio1']")
+```
+
 Example for a headed Chrome session with a French desktop profile:
 
 ```python

@@ -33,6 +33,25 @@ Set `user_data_dir` to keep cookies, local storage, and browser profile state be
 config = SessionConfig(user_data_dir=Path(".webskrap/profile"))
 ```
 
+## Human-like Clicks
+
+Sessions expose `human_click` for interactions that should behave more like a manual click
+than a direct Playwright `page.click`.
+
+```python
+async with WebSkrapClient() as client:
+    session = await client.session("default")
+    page = await session.context.new_page()
+    await page.goto("https://example.com", wait_until="domcontentloaded")
+    await session.human_click(page, "label[for='radio1']")
+```
+
+Pass `human=False` to use the same helper while delegating directly to Playwright.
+
+```python
+await session.human_click(page, "label[for='radio1']", human=False, timeout=5_000)
+```
+
 ## Common Options
 
 ```python

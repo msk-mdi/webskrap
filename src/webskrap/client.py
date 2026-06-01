@@ -3,7 +3,8 @@ from __future__ import annotations
 import time
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Literal
+from random import uniform
+from typing import Any, Literal
 from uuid import uuid4
 
 from playwright.async_api import Browser, BrowserContext, Page, Playwright, async_playwright
@@ -81,6 +82,59 @@ class WebSkrapSession:
             )
         finally:
             await page.close()
+
+    async def human_click(
+        self,
+        page: Page,
+        selector: str,
+        *,
+        human: bool = True,
+        **click_options: Any,
+    ) -> None:
+        self._ensure_open()
+        if not human:
+            await page.click(selector, **click_options)
+            return
+
+        locator = page.locator(selector)
+        timeout = click_options.get("timeout")
+        await locator.wait_for(state="visible", timeout=timeout)
+        await locator.scroll_into_view_if_needed(timeout=timeout)
+
+        if click_options.get("strict") is True and await locator.count() != 1:
+            msg = f"strict mode expected one element for selector: {selector}"
+            raise WebSkrapError(msg)
+
+        box = await locator.bounding_box(timeout=timeout)
+        if box is None:
+            msg = f"could not find a visible bounding box for selector: {selector}"
+            raise WebSkrapError(msg)
+
+        x, y = _human_click_point(box, click_options.get("position"))
+        if click_options.get("trial"):
+            return
+
+        await page.wait_for_timeout(uniform(80, 220))
+
+        start_x = x + uniform(-160, 160)
+        start_y = y + uniform(-90, 90)
+        await page.mouse.move(start_x, start_y, steps=1)
+        await page.mouse.move(
+            x + uniform(-8, 8),
+            y + uniform(-6, 6),
+            steps=max(4, min(18, int((box["width"] + box["height"]) / 10))),
+        )
+        await page.wait_for_timeout(uniform(40, 140))
+
+        mouse_options = _mouse_click_options(click_options)
+        modifiers = click_options.get("modifiers") or []
+        for modifier in modifiers:
+            await page.keyboard.down(modifier)
+        try:
+            await page.mouse.click(x, y, **mouse_options)
+        finally:
+            for modifier in reversed(modifiers):
+                await page.keyboard.up(modifier)
 
     async def close(self) -> None:
         if self._closed:
@@ -237,6 +291,32 @@ def _resource_route_handler(policy: ResourcePolicy):
 def _configure_page_timeouts(page: Page, config: SessionConfig) -> None:
     page.set_default_timeout(config.default_timeout_ms)
     page.set_default_navigation_timeout(config.navigation_timeout_ms)
+
+
+def _human_click_point(
+    box: dict[str, float],
+    position: dict[str, float] | None,
+) -> tuple[float, float]:
+    if position is not None:
+        return box["x"] + position["x"], box["y"] + position["y"]
+
+    jitter_x = min(box["width"] * 0.2, 6)
+    jitter_y = min(box["height"] * 0.2, 6)
+    return (
+        box["x"] + box["width"] / 2 + uniform(-jitter_x, jitter_x),
+        box["y"] + box["height"] / 2 + uniform(-jitter_y, jitter_y),
+    )
+
+
+def _mouse_click_options(click_options: dict[str, Any]) -> dict[str, Any]:
+    mouse_options: dict[str, Any] = {}
+    if "button" in click_options:
+        mouse_options["button"] = click_options["button"]
+    if "click_count" in click_options:
+        mouse_options["click_count"] = click_options["click_count"]
+    if "delay" in click_options:
+        mouse_options["delay"] = click_options["delay"]
+    return mouse_options
 
 
 async def _maybe_screenshot(page: Page, screenshot: bool | str | Path) -> Path | None:

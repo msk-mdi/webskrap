@@ -48,6 +48,17 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
+## Human-like Clicks
+
+Use `human_click` for manual interactions that should wait for the element, scroll it into
+view, pause briefly, move the mouse, and then click.
+
+```python
+page = await session.context.new_page()
+await page.goto("https://example.com", wait_until="domcontentloaded")
+await session.human_click(page, "label[for='radio1']")
+```
+
 ## CLI Fetch
 
 ```bash
