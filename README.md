@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/webskrap-logo.png" alt="WebSkrap logo" width="200">
+</p>
+
 <h1 align="center">WebSkrap</h1>
 
 <p align="center">
