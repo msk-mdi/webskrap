@@ -85,7 +85,7 @@ async def test_recaptcha_v3() -> None:
     reason="Turnstile managed challenge does not auto-issue a token for CDP-driven Chromium",
 )
 async def test_cloudflare_turnstile_non_interactive() -> None:
-    """Cloudflare Turnstile (managed/non-interactive) must auto-issue a token."""
+    # Cloudflare Turnstile (managed/non-interactive) must auto-issue a token.
     async with stealth_page() as page:
         await page.goto(
             "https://2captcha.com/demo/cloudflare-turnstile",
@@ -105,7 +105,7 @@ async def test_cloudflare_turnstile_non_interactive() -> None:
 
 
 async def test_browserscan_bot_detection() -> None:
-    """BrowserScan must report 0 abnormal checks."""
+    # BrowserScan must report 0 abnormal checks.
     async with stealth_page() as page:
         await page.goto(
             "https://www.browserscan.net/bot-detection",
@@ -132,7 +132,7 @@ async def test_browserscan_bot_detection() -> None:
     reason="FingerprintJS web-scraping demo withholds results from CDP-driven Chromium",
 )
 async def test_fingerprintjs_web_scraping_demo() -> None:
-    """FingerprintJS web-scraping demo must not block us as a bot."""
+    # FingerprintJS web-scraping demo must not block us as a bot.
     async with stealth_page() as page:
         await page.goto(
             "https://demo.fingerprint.com/web-scraping",
@@ -165,7 +165,7 @@ async def test_fingerprintjs_web_scraping_demo() -> None:
     reason="deviceandbrowserinfo flags isAutomatedWithCDP; CDP channel is detectable",
 )
 async def test_device_and_browser_info_behavioral() -> None:
-    """deviceandbrowserinfo.com behavioral detection: isBot must be false."""
+    # deviceandbrowserinfo.com behavioral detection: isBot must be false.
     async with stealth_page() as page:
         await page.goto(
             "https://deviceandbrowserinfo.com/are_you_a_bot",
