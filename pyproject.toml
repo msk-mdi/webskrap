@@ -58,6 +58,7 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 markers = [
   "browser: requires installed Playwright browsers",
+  "live: hits public third-party bot-detection demos (opt-in via WEBSKRAP_LIVE=1)",
 ]
 
 [tool.ruff]
