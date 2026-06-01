@@ -1,0 +1,119 @@
+/* ── WebSkrap theme polish ──────────────────────────────────────────── */
+
+:root {
+  --md-primary-fg-color:        #06b6d4;
+  --md-primary-fg-color--light: #22d3ee;
+  --md-primary-fg-color--dark:  #0891b2;
+  --md-accent-fg-color:         #3b82f6;
+}
+
+/* Light scheme tuning */
+[data-md-color-scheme="default"] {
+  --md-default-bg-color: #ffffff;
+  --md-typeset-a-color: #0e7490;
+}
+
+/* Dark scheme: deep slate with a subtle cyan-tinted gradient backdrop */
+[data-md-color-scheme="slate"] {
+  --md-hue: 210;
+  --md-default-bg-color:        #0b1120;
+  --md-default-fg-color:        #e2e8f0;
+  --md-default-fg-color--light: #cbd5e1;
+  --md-code-bg-color:           #111827;
+  --md-code-fg-color:           #e5e7eb;
+  --md-typeset-a-color:         #38bdf8;
+  --md-footer-bg-color:         #0a0f1c;
+  --md-footer-bg-color--dark:   #070b15;
+}
+
+[data-md-color-scheme="slate"] body {
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(34, 211, 238, 0.10), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(59, 130, 246, 0.10), transparent 55%),
+    var(--md-default-bg-color);
+  background-attachment: fixed;
+}
+
+/* Header: gradient bar instead of flat fill */
+.md-header {
+  background: linear-gradient(90deg, var(--md-primary-fg-color--dark), var(--md-accent-fg-color));
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+}
+.md-tabs {
+  background: transparent;
+}
+
+/* Logo crisp + slight breathing room */
+.md-header__button.md-logo img {
+  height: 1.6rem;
+  width: auto;
+}
+
+/* ── Hero ───────────────────────────────────────────────────────────── */
+.ws-hero {
+  text-align: center;
+  padding: 3.2rem 1rem 2.4rem;
+}
+.ws-hero h1 {
+  font-size: 2.9rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.4rem;
+  background: linear-gradient(92deg, var(--md-primary-fg-color--light), var(--md-accent-fg-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ws-hero p.ws-tagline {
+  font-size: 1.15rem;
+  color: var(--md-default-fg-color--light);
+  max-width: 40rem;
+  margin: 0 auto 1.6rem;
+}
+.ws-cta {
+  display: inline-flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ws-cta .md-button {
+  border-radius: 0.6rem;
+  font-weight: 600;
+}
+
+/* ── Feature grid cards ─────────────────────────────────────────────── */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid > .card {
+  border-radius: 0.8rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-3px);
+  border-color: var(--md-accent-fg-color);
+  box-shadow: 0 10px 28px rgba(8, 145, 178, 0.18);
+}
+
+/* ── Code blocks ────────────────────────────────────────────────────── */
+.md-typeset pre > code {
+  border-radius: 0.6rem;
+}
+[data-md-color-scheme="slate"] .md-typeset pre > code {
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12);
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────── */
+.md-typeset .md-button--primary {
+  background: linear-gradient(92deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
+  border: none;
+  color: #fff;
+}
+.md-typeset .md-button--primary:hover {
+  filter: brightness(1.07);
+  box-shadow: 0 6px 18px rgba(8, 145, 178, 0.35);
+}
+
+/* Smooth color-scheme transition */
+[data-md-color-scheme] {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

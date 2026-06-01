@@ -1,8 +1,22 @@
+---
+hide:
+  - navigation
+  - toc
+---
+
+<div class="ws-hero" markdown>
+
 # WebSkrap
 
-WebSkrap is an async-first Python scraping framework built on Playwright.
+<p class="ws-tagline">Async-first Python scraping framework built on Playwright — coherent browser profiles, persistent sessions, resource routing, and configurable hardening for workflows that need realistic browser behavior.</p>
 
-It provides coherent browser profiles, persistent browser sessions, resource routing, a CLI, and configurable browser hardening for data collection workflows that need realistic browser behavior.
+<div class="ws-cta" markdown>
+[Get started](getting-started/installation.md){ .md-button .md-button--primary }
+[Quickstart](getting-started/quickstart.md){ .md-button }
+[View on GitHub](https://github.com/kacigaya/webskrap){ .md-button }
+</div>
+
+</div>
 
 !!! warning "Usage boundary"
     WebSkrap does not include CAPTCHA solving, login-wall bypassing, credential bypassing, or access-control circumvention. Use it only on targets you are allowed to access.
@@ -34,17 +48,54 @@ asyncio.run(main())
 
 ## Features
 
-- Async Playwright lifecycle management.
-- One-shot fetch helper for simple scripts.
-- Persistent sessions with browser storage.
-- Built-in desktop and mobile profiles.
-- Custom profile support for locale, timezone, viewport, headers, and browser surfaces.
-- Resource routing presets.
-- CLI commands for fetches, profile inspection, and environment checks.
+<div class="grid cards" markdown>
 
-## Next Steps
+-   :material-lightning-bolt:{ .lg .middle } __Async by design__
 
-- [Installation](getting-started/installation.md)
-- [Quickstart](getting-started/quickstart.md)
-- [Sessions](user-guide/sessions.md)
-- [API Reference](api-reference.md)
+    ---
+
+    Fully async Playwright lifecycle management with a one-shot `fetch` helper for simple scripts.
+
+    [:octicons-arrow-right-24: Client](user-guide/client.md)
+
+-   :material-account-box:{ .lg .middle } __Coherent profiles__
+
+    ---
+
+    Built-in desktop and mobile profiles, plus custom locale, timezone, viewport, headers, and browser surfaces.
+
+    [:octicons-arrow-right-24: Profiles](user-guide/profiles.md)
+
+-   :material-database-sync:{ .lg .middle } __Persistent sessions__
+
+    ---
+
+    Keep browser storage across runs so authenticated and stateful flows stay realistic.
+
+    [:octicons-arrow-right-24: Sessions](user-guide/sessions.md)
+
+-   :material-shield-lock:{ .lg .middle } __Stealth & routing__
+
+    ---
+
+    Configurable browser hardening and resource routing presets to shape network behavior.
+
+    [:octicons-arrow-right-24: Stealth](user-guide/stealth.md)
+
+-   :material-console:{ .lg .middle } __CLI included__
+
+    ---
+
+    Run fetches, inspect profiles, and check your environment straight from the terminal.
+
+    [:octicons-arrow-right-24: CLI](user-guide/cli.md)
+
+-   :material-api:{ .lg .middle } __Typed API__
+
+    ---
+
+    Annotated signatures and a generated reference for every public surface.
+
+    [:octicons-arrow-right-24: API Reference](api-reference.md)
+
+</div>

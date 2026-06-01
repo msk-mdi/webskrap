@@ -9,27 +9,62 @@ theme:
   name: material
   logo: assets/webskrap-logo.png
   favicon: assets/webskrap-logo.png
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: Inter
+    code: JetBrains Mono
   features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
     - navigation.sections
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - toc.follow
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.copy
+    - content.code.annotate
     - content.action.edit
+    - content.tooltips
   palette:
-    - scheme: default
+    - media: "(prefers-color-scheme)"
+      primary: cyan
+      accent: blue
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: cyan
       accent: blue
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
       primary: cyan
       accent: blue
       toggle:
         icon: material/weather-sunny
-        name: Switch to light mode
+        name: Switch to system preference
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/kacigaya/webskrap
+      name: WebSkrap on GitHub
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/webskrap/
+      name: WebSkrap on PyPI
 
 nav:
   - Home: index.md
@@ -50,12 +85,27 @@ markdown_extensions:
   - admonition
   - attr_list
   - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 plugins:
   - search
