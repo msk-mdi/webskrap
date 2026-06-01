@@ -262,6 +262,43 @@ webskrap fetch https://example.com --profile desktop-chrome
 webskrap fetch https://example.com --headed --screenshot example.png
 ```
 
+## Performance Benchmarks
+
+WebSkrap is a browser-automation framework, so these benchmarks measure what it
+actually does: resource routing, session reuse, and concurrent fetching. They run
+against a local HTTP server that serves a synthetic page referencing many delayed
+sub-resources (images, stylesheets, media) — no external sites are contacted, so
+results are deterministic. Numbers below are from a single machine and will vary
+with hardware; run them yourself with `python benchmarks.py`.
+
+### Resource routing (full page load with delayed assets)
+
+| Policy      | Time (ms) | vs ALL |
+|-------------|:---------:|:------:|
+| `DOCUMENTS` |  156.98   | 0.58x  |
+| `LITE`      |  169.42   | 0.62x  |
+| `ALL`       |  271.23   | 1.0x   |
+
+Blocking images, fonts, and media (`LITE`) cuts load time ~38%; also dropping
+stylesheets (`DOCUMENTS`) reaches ~42%.
+
+### Session reuse
+
+| Mode                  | Time (ms) | vs warm |
+|-----------------------|:---------:|:-------:|
+| Warm session reuse    |  215.74   |  1.0x   |
+| Cold launch per fetch |  411.68   |  1.91x  |
+
+Reusing a persistent session avoids per-fetch browser/context startup — roughly
+2x faster than launching cold each time.
+
+### Concurrency
+
+Fetching 8 pages per batch from one session averages **~109 ms per page**.
+
+> Benchmarks average 20+ navigations after warm-up. See
+> [benchmarks.py](benchmarks.py) for methodology.
+
 ## Development
 
 ```bash
