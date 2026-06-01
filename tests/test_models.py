@@ -1,0 +1,51 @@
+from __future__ import annotations
+
+import pytest
+from pydantic import ValidationError
+
+from webskrap import BrowserProfile, ProxyConfig, ResourcePolicy, SessionConfig, Viewport
+
+
+def test_profile_generates_context_options() -> None:
+    profile = BrowserProfile(
+        name="test",
+        viewport=Viewport(width=1280, height=720),
+        locale="en-US",
+        timezone_id="Europe/Paris",
+        navigator_languages=["en-US", "en"],
+    )
+
+    options = profile.to_context_options()
+
+    assert options["viewport"] == {"width": 1280, "height": 720}
+    assert options["locale"] == "en-US"
+    assert options["timezone_id"] == "Europe/Paris"
+    assert options["extra_http_headers"]["Accept-Language"] == "en-US,en;q=0.9"
+
+
+def test_session_config_maps_proxy_and_storage_state() -> None:
+    profile = BrowserProfile(name="test")
+    config = SessionConfig(
+        proxy=ProxyConfig(server="http://localhost:8080", username="user", password="pass"),
+        storage_state={"cookies": [], "origins": []},
+        resource_policy=ResourcePolicy.LITE,
+    )
+
+    options = config.context_options(profile)
+
+    assert options["proxy"] == {
+        "server": "http://localhost:8080",
+        "username": "user",
+        "password": "pass",
+    }
+    assert options["storage_state"] == {"cookies": [], "origins": []}
+
+
+def test_proxy_requires_supported_scheme() -> None:
+    with pytest.raises(ValidationError):
+        ProxyConfig(server="localhost:8080")
+
+
+def test_viewport_dimensions_must_be_positive() -> None:
+    with pytest.raises(ValidationError):
+        Viewport(width=0, height=720)

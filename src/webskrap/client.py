@@ -1,0 +1,252 @@
+from __future__ import annotations
+
+import time
+from collections.abc import Mapping
+from pathlib import Path
+from typing import Literal
+from uuid import uuid4
+
+from playwright.async_api import Browser, BrowserContext, Page, Playwright, async_playwright
+
+from webskrap.models import BrowserProfile, FetchResult, ResourcePolicy, SessionConfig
+from webskrap.profiles import get_profile
+from webskrap.stealth import apply_stealth
+
+WaitUntil = Literal["commit", "domcontentloaded", "load", "networkidle"]
+
+
+class WebSkrapError(RuntimeError):
+    pass
+
+
+class WebSkrapSession:
+    def __init__(
+        self,
+        *,
+        name: str,
+        context: BrowserContext,
+        config: SessionConfig,
+        profile: BrowserProfile,
+        browser: Browser | None = None,
+    ) -> None:
+        self.name = name
+        self.context = context
+        self.config = config
+        self.profile = profile
+        self.browser = browser
+        self._closed = False
+
+    async def __aenter__(self) -> WebSkrapSession:
+        return self
+
+    async def __aexit__(self, exc_type: object, exc: object, traceback: object) -> None:
+        await self.close()
+
+    async def fetch(
+        self,
+        url: str,
+        *,
+        wait_until: WaitUntil = "domcontentloaded",
+        screenshot: bool | str | Path = False,
+        timeout_ms: float | None = None,
+    ) -> FetchResult:
+        self._ensure_open()
+        started = time.perf_counter()
+        page = await self.context.new_page()
+        try:
+            _configure_page_timeouts(page, self.config)
+            response = await page.goto(
+                url,
+                wait_until=wait_until,
+                timeout=timeout_ms or self.config.navigation_timeout_ms,
+            )
+            title = await page.title()
+            text = await page.content()
+            screenshot_path = await _maybe_screenshot(page, screenshot)
+            cookies = await self.context.cookies()
+            elapsed_ms = (time.perf_counter() - started) * 1000
+            status = response.status if response else None
+            headers = dict(response.headers) if response else {}
+            return FetchResult(
+                url=url,
+                final_url=page.url,
+                status=status,
+                ok=status is not None and 200 <= status < 400,
+                headers=headers,
+                text=text,
+                title=title,
+                cookies=cookies,
+                timings={"elapsed_ms": elapsed_ms},
+                screenshot_path=screenshot_path,
+            )
+        finally:
+            await page.close()
+
+    async def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        await self.context.close()
+        if self.browser is not None:
+            await self.browser.close()
+
+    def _ensure_open(self) -> None:
+        if self._closed:
+            msg = f"session '{self.name}' is closed"
+            raise WebSkrapError(msg)
+
+
+class WebSkrapClient:
+    def __init__(
+        self,
+        *,
+        default_config: SessionConfig | None = None,
+        profiles: Mapping[str, BrowserProfile] | None = None,
+    ) -> None:
+        self.default_config = default_config or SessionConfig()
+        self.profiles = dict(profiles or {})
+        self._playwright_manager = None
+        self._playwright: Playwright | None = None
+        self._sessions: dict[str, WebSkrapSession] = {}
+
+    async def __aenter__(self) -> WebSkrapClient:
+        await self.start()
+        return self
+
+    async def __aexit__(self, exc_type: object, exc: object, traceback: object) -> None:
+        await self.close()
+
+    async def start(self) -> None:
+        if self._playwright is not None:
+            return
+        self._playwright_manager = async_playwright()
+        self._playwright = await self._playwright_manager.start()
+
+    async def close(self) -> None:
+        for session in list(self._sessions.values()):
+            await session.close()
+        self._sessions.clear()
+        if self._playwright is not None:
+            await self._playwright.stop()
+        self._playwright_manager = None
+        self._playwright = None
+
+    async def fetch(
+        self,
+        url: str,
+        *,
+        profile: str | BrowserProfile | None = None,
+        config: SessionConfig | None = None,
+        wait_until: WaitUntil = "domcontentloaded",
+        screenshot: bool | str | Path = False,
+        timeout_ms: float | None = None,
+    ) -> FetchResult:
+        name = f"_single_{uuid4().hex}"
+        session = await self.session(name, config=config, profile=profile)
+        try:
+            return await session.fetch(
+                url,
+                wait_until=wait_until,
+                screenshot=screenshot,
+                timeout_ms=timeout_ms,
+            )
+        finally:
+            await session.close()
+            self._sessions.pop(name, None)
+
+    async def session(
+        self,
+        name: str,
+        *,
+        config: SessionConfig | None = None,
+        profile: str | BrowserProfile | None = None,
+    ) -> WebSkrapSession:
+        if name in self._sessions:
+            return self._sessions[name]
+        await self.start()
+        resolved_config = config or self.default_config
+        resolved_profile = self._resolve_profile(profile)
+        session = await self._create_session(name, resolved_config, resolved_profile)
+        self._sessions[name] = session
+        return session
+
+    def _resolve_profile(self, profile: str | BrowserProfile | None) -> BrowserProfile:
+        if isinstance(profile, BrowserProfile):
+            return profile
+        if profile in self.profiles:
+            return self.profiles[profile].model_copy(deep=True)
+        return get_profile(profile)
+
+    async def _create_session(
+        self,
+        name: str,
+        config: SessionConfig,
+        profile: BrowserProfile,
+    ) -> WebSkrapSession:
+        if self._playwright is None:
+            msg = "client is not started"
+            raise WebSkrapError(msg)
+
+        browser_type = getattr(self._playwright, config.browser)
+        context_options = config.context_options(profile)
+
+        if config.user_data_dir is not None:
+            config.user_data_dir.mkdir(parents=True, exist_ok=True)
+            context = await browser_type.launch_persistent_context(
+                str(config.user_data_dir),
+                **config.launch_options(),
+                **context_options,
+            )
+            browser = None
+        else:
+            browser = await browser_type.launch(**config.launch_options())
+            context = await browser.new_context(**context_options)
+
+        context.set_default_timeout(config.default_timeout_ms)
+        context.set_default_navigation_timeout(config.navigation_timeout_ms)
+
+        if config.resource_policy != ResourcePolicy.ALL:
+            await context.route("**/*", _resource_route_handler(config.resource_policy))
+        if config.stealth.enabled:
+            await apply_stealth(context, profile, config.stealth)
+
+        return WebSkrapSession(
+            name=name,
+            context=context,
+            config=config,
+            profile=profile,
+            browser=browser,
+        )
+
+
+def _resource_route_handler(policy: ResourcePolicy):
+    blocked = {
+        ResourcePolicy.LITE: {"image", "font", "media"},
+        ResourcePolicy.DOCUMENTS: {"image", "font", "media", "stylesheet"},
+    }[policy]
+
+    async def handle(route) -> None:
+        if route.request.resource_type in blocked:
+            await route.abort()
+        else:
+            await route.continue_()
+
+    return handle
+
+
+def _configure_page_timeouts(page: Page, config: SessionConfig) -> None:
+    page.set_default_timeout(config.default_timeout_ms)
+    page.set_default_navigation_timeout(config.navigation_timeout_ms)
+
+
+async def _maybe_screenshot(page: Page, screenshot: bool | str | Path) -> Path | None:
+    if not screenshot:
+        return None
+    path = (
+        Path(f"webskrap-{int(time.time() * 1000)}.png")
+        if screenshot is True
+        else Path(screenshot)
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    await page.screenshot(path=str(path), full_page=True)
+    return path
