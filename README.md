@@ -243,6 +243,8 @@ config = SessionConfig(
     stealth=StealthConfig(
         enabled=True,
         patch_webdriver=True,
+        patch_headless_user_agent=False,
+        patch_window_metrics=False,
         patch_chrome_runtime=True,
         patch_permissions=True,
         patch_plugins=True,
@@ -284,6 +286,38 @@ and deviceandbrowserinfo behavioral detection. See
 `WEBSKRAP_LIVE=1`). The `patchright` driver needs Google Chrome installed and the
 `stealth` extra; without a `user_data_dir` it uses a throwaway persistent profile,
 which patchright requires for full stealth.
+
+### Headless patchright
+
+Headed patchright is the strongest stealth mode. For headless runs, enable only
+the targeted headless patches you need and prefer a stable persistent profile.
+
+```python
+from pathlib import Path
+
+from webskrap import SessionConfig, StealthConfig
+
+config = SessionConfig(
+    driver="patchright",
+    channel="chrome",
+    headless=True,
+    user_data_dir=Path(".webskrap/headless-profile"),
+    stealth=StealthConfig(
+        enabled=True,
+        patch_headless_user_agent=True,
+        patch_window_metrics=True,
+        patch_webdriver=True,
+        patch_webgl=False,
+        patch_canvas=False,
+    ),
+)
+```
+
+`patch_headless_user_agent` removes `HeadlessChrome` from JavaScript-visible
+browser strings and, when a profile user agent is set, applies coherent request
+headers. `patch_window_metrics` fills common headless gaps in window and screen
+dimensions. Keep WebGL and canvas patches off unless a target proves they help,
+because broad fingerprint spoofing can look like tampering.
 
 ## CLI
 

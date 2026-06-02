@@ -25,6 +25,8 @@ def build_stealth_script(profile: BrowserProfile, config: StealthConfig) -> str:
         "webglVendor": profile.webgl_vendor,
         "webglRenderer": profile.webgl_renderer,
         "patchWebdriver": config.patch_webdriver,
+        "patchHeadlessUserAgent": config.patch_headless_user_agent,
+        "patchWindowMetrics": config.patch_window_metrics,
         "patchChromeRuntime": config.patch_chrome_runtime,
         "patchPermissions": config.patch_permissions,
         "patchPlugins": config.patch_plugins,
@@ -44,6 +46,15 @@ def build_stealth_script(profile: BrowserProfile, config: StealthConfig) -> str:
 
   if (profile.patchWebdriver) {{
     defineGetter(Navigator.prototype, "webdriver", () => undefined);
+  }}
+
+  if (profile.patchHeadlessUserAgent) {{
+    const cleanHeadless = (value) => {{
+      if (typeof value !== "string") return value;
+      return value.replace(/HeadlessChrome\\//g, "Chrome/");
+    }};
+    defineGetter(Navigator.prototype, "userAgent", () => cleanHeadless(navigator.userAgent));
+    defineGetter(Navigator.prototype, "appVersion", () => cleanHeadless(navigator.appVersion));
   }}
 
   defineGetter(Navigator.prototype, "languages", () => profile.languages.slice());
@@ -71,6 +82,21 @@ def build_stealth_script(profile: BrowserProfile, config: StealthConfig) -> str:
         }}
       }});
     }} catch (_) {{}}
+  }}
+
+  if (profile.patchWindowMetrics) {{
+    const viewportWidth = () => Math.max(1, window.innerWidth || 1365);
+    const viewportHeight = () => Math.max(1, window.innerHeight || 768);
+    defineGetter(window, "outerWidth", () => Math.max(viewportWidth(), window.outerWidth || 0));
+    defineGetter(
+      window,
+      "outerHeight",
+      () => Math.max(viewportHeight() + 85, window.outerHeight || 0)
+    );
+    if (window.screen) {{
+      defineGetter(Screen.prototype, "availWidth", () => window.screen.width);
+      defineGetter(Screen.prototype, "availHeight", () => Math.max(1, window.screen.height - 40));
+    }}
   }}
 
   if (profile.patchPermissions && navigator.permissions && navigator.permissions.query) {{

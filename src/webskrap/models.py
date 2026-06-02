@@ -50,6 +50,8 @@ class ProxyConfig(BaseModel):
 class StealthConfig(BaseModel):
     enabled: bool = True
     patch_webdriver: bool = True
+    patch_headless_user_agent: bool = False
+    patch_window_metrics: bool = False
     patch_chrome_runtime: bool = True
     patch_permissions: bool = True
     patch_plugins: bool = True
@@ -183,6 +185,10 @@ class SessionConfig(BaseModel):
             # or Accept-Language header reintroduces behavioral bot signals, so we
             # let the real environment show through instead of the profile.
             options: dict[str, Any] = {"no_viewport": True}
+            if self.headless and self.stealth.patch_headless_user_agent:
+                options["extra_http_headers"] = profile.headers()
+                if profile.user_agent:
+                    options["user_agent"] = profile.user_agent
         else:
             options = profile.to_context_options()
         options.update(

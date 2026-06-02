@@ -114,6 +114,31 @@ config = SessionConfig(
 
 Use Patchright for CDP-aware detection surfaces. It uses a persistent context for full stealth; if `user_data_dir` is omitted, WebSkrap creates a temporary persistent profile. With Patchright, let the real browser fingerprint show through and disable JavaScript-surface patches with `StealthConfig(enabled=False)`.
 
+Headless Patchright:
+
+```python
+from pathlib import Path
+
+from webskrap import SessionConfig, StealthConfig
+
+config = SessionConfig(
+    driver="patchright",
+    channel="chrome",
+    headless=True,
+    user_data_dir=Path(".webskrap/headless-profile"),
+    stealth=StealthConfig(
+        enabled=True,
+        patch_headless_user_agent=True,
+        patch_window_metrics=True,
+        patch_webdriver=True,
+        patch_webgl=False,
+        patch_canvas=False,
+    ),
+)
+```
+
+Use headless Patchright as best-effort stealth. Prefer a stable `user_data_dir`, patch only obvious headless leaks, and keep WebGL/canvas spoofing disabled unless a target proves those patches help.
+
 CLI fetch:
 
 ```bash

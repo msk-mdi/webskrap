@@ -28,3 +28,25 @@ def test_disabled_stealth_keeps_flags_in_script_payload() -> None:
     script = build_stealth_script(profile, StealthConfig(patch_canvas=False))
 
     assert '"patchCanvas":false' in script
+
+
+def test_headless_stealth_options_are_opt_in() -> None:
+    profile = BrowserProfile(name="test")
+    script = build_stealth_script(profile, StealthConfig())
+
+    assert '"patchHeadlessUserAgent":false' in script
+    assert '"patchWindowMetrics":false' in script
+
+
+def test_headless_stealth_script_patches_user_agent_and_window_metrics() -> None:
+    profile = BrowserProfile(name="test")
+    script = build_stealth_script(
+        profile,
+        StealthConfig(patch_headless_user_agent=True, patch_window_metrics=True),
+    )
+
+    assert '"patchHeadlessUserAgent":true' in script
+    assert '"patchWindowMetrics":true' in script
+    assert "HeadlessChrome" in script
+    assert "Navigator.prototype, \"userAgent\"" in script
+    assert "outerWidth" in script
