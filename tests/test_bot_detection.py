@@ -185,3 +185,103 @@ async def test_device_and_browser_info_behavioral() -> None:
             }"""
         )
     assert result["isBot"] is False, f"detected as bot; signals: {result['signals']}"
+
+
+async def test_bot_sannysoft() -> None:
+    # bot.sannysoft.com — no detection row may be marked failed.
+    async with stealth_page() as page:
+        await page.goto(
+            "https://bot.sannysoft.com", wait_until="networkidle", timeout=60_000
+        )
+        await page.wait_for_timeout(4_000)
+        failed = await page.evaluate(
+            """() => {
+                const failed = [];
+                document.querySelectorAll('table tr').forEach(r => {
+                    const cells = r.querySelectorAll('td');
+                    if (cells.length >= 2 && (cells[1].className || '').includes('failed')) {
+                        failed.push(cells[0].innerText.trim());
+                    }
+                });
+                return failed;
+            }"""
+        )
+    assert failed == [], f"Sannysoft failures: {', '.join(failed)}"
+
+
+async def test_bot_incolumitas() -> None:
+    # bot.incolumitas.com — only network/spec false positives are tolerated.
+    known_acceptable = {"WEBDRIVER", "connectionRTT"}
+    async with stealth_page() as page:
+        await page.goto(
+            "https://bot.incolumitas.com", wait_until="networkidle", timeout=60_000
+        )
+        await page.wait_for_timeout(13_000)
+        failed = await page.evaluate(
+            """() => {
+                const text = document.body.innerText;
+                const fails = text.match(/"(\\w+)":\\s*"FAIL"/g) || [];
+                return fails.map(m => m.match(/"(\\w+)"/)[1]);
+            }"""
+        )
+    unexpected = [name for name in failed if name not in known_acceptable]
+    assert unexpected == [], f"Incolumitas unexpected failures: {', '.join(unexpected)}"
+
+
+async def test_are_you_headless() -> None:
+    # antoinevastel "are you headless" — must report not Chrome headless.
+    async with stealth_page() as page:
+        await page.goto(
+            "https://arh.antoinevastel.com/bots/areyouheadless",
+            wait_until="domcontentloaded",
+            timeout=60_000,
+        )
+        await page.wait_for_timeout(5_000)
+        text = await page.evaluate("() => document.body.innerText")
+    assert "You are not Chrome headless" in text, "flagged as Chrome headless"
+
+
+@pytest.mark.xfail(
+    strict=False,
+    reason="iphey verdict loads asynchronously and is environment-sensitive",
+)
+async def test_iphey() -> None:
+    # iphey.com — overall verdict must be Trustworthy, not Suspicious.
+    async with stealth_page() as page:
+        await page.goto("https://iphey.com", wait_until="domcontentloaded", timeout=60_000)
+        await page.wait_for_timeout(16_000)
+        text = (await page.evaluate("() => document.body.innerText")).lower()
+    assert "suspicious" not in text, "iphey flagged the browser as suspicious"
+    assert "trustworthy" in text, "iphey did not return a trustworthy verdict"
+
+
+@pytest.mark.xfail(
+    strict=False,
+    reason="CreepJS is a fingerprint scorer with no binary verdict; signal is noisy",
+)
+async def test_creepjs() -> None:
+    # CreepJS — must not be classified as headless.
+    async with stealth_page() as page:
+        await page.goto(
+            "https://abrahamjuliot.github.io/creepjs/",
+            wait_until="networkidle",
+            timeout=60_000,
+        )
+        await page.wait_for_timeout(12_000)
+        text = await page.evaluate("() => document.body.innerText")
+    assert "0% headless" in text, "CreepJS reported a non-zero headless likelihood"
+
+
+@pytest.mark.xfail(
+    strict=False,
+    reason="pixelscan is a slow SPA that frequently reports false inconsistencies",
+)
+async def test_pixelscan() -> None:
+    # pixelscan.net — must not be reported as automation/inconsistent.
+    async with stealth_page() as page:
+        await page.goto("https://pixelscan.net", wait_until="networkidle", timeout=60_000)
+        await page.wait_for_timeout(15_000)
+        text = (await page.evaluate("() => document.body.innerText")).lower()
+    assert "automation" not in text and "inconsistent" not in text, (
+        "pixelscan flagged automation/inconsistency"
+    )
