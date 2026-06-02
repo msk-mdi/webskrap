@@ -1,6 +1,6 @@
 ---
 name: webskrap
-description: Use when writing Python scraping or browser automation code with WebSkrap, including async fetches, persistent sessions, browser profiles, resource policies, stealth configuration, screenshots, CLI usage, and safety boundaries.
+description: Use when writing Python scraping or browser automation code with WebSkrap, including async fetches, persistent sessions, browser profiles, resource policies, Patchright stealth configuration, screenshots, and CLI usage.
 ---
 
 # WebSkrap
@@ -12,6 +12,7 @@ WebSkrap is an async-first Python scraping framework built on Playwright for rea
 - Writing Python code that fetches pages with `webskrap`.
 - Keeping browser state across requests with persistent sessions.
 - Configuring browser profiles, locale, timezone, viewport, proxy, or resource policy.
+- Configuring stealth mode with Playwright or Patchright.
 - Taking screenshots or debugging with a headed browser.
 - Using the `webskrap` CLI.
 
@@ -93,6 +94,26 @@ from webskrap import ResourcePolicy, SessionConfig
 config = SessionConfig(resource_policy=ResourcePolicy.LITE)
 ```
 
+Patchright stealth:
+
+```bash
+pip install "webskrap[stealth]"
+patchright install chromium
+```
+
+```python
+from webskrap import SessionConfig, StealthConfig
+
+config = SessionConfig(
+    driver="patchright",
+    channel="chrome",
+    headless=False,
+    stealth=StealthConfig(enabled=False),
+)
+```
+
+Use Patchright for CDP-aware detection surfaces. It uses a persistent context for full stealth; if `user_data_dir` is omitted, WebSkrap creates a temporary persistent profile. With Patchright, let the real browser fingerprint show through and disable JavaScript-surface patches with `StealthConfig(enabled=False)`.
+
 CLI fetch:
 
 ```bash
@@ -100,10 +121,6 @@ webskrap doctor
 webskrap profiles
 webskrap fetch https://example.com --profile desktop-chrome --screenshot example.png
 ```
-
-## Safety Boundaries
-
-Do not use WebSkrap to solve CAPTCHA challenges, bypass login walls, bypass credential checks, or circumvent access controls. Keep examples limited to targets the user is allowed to access.
 
 ## Reference Docs
 
@@ -113,5 +130,5 @@ Do not use WebSkrap to solve CAPTCHA challenges, bypass login walls, bypass cred
 - `docs/user-guide/sessions.md`: persistent sessions and human-like clicks.
 - `docs/user-guide/profiles.md`: built-in and custom browser profiles.
 - `docs/user-guide/resource-policy.md`: resource blocking policies.
-- `docs/user-guide/stealth.md`: browser hardening configuration and boundaries.
+- `docs/user-guide/stealth.md`: browser hardening and Patchright configuration.
 - `docs/api-reference.md`: public API reference.
