@@ -12,3 +12,4 @@ site/
 *.egg-info/
 .webskrap/
 test.py
+AGENTS.md
