@@ -253,6 +253,38 @@ config = SessionConfig(
 )
 ```
 
+### patchright driver
+
+The default `playwright` driver is detectable by CDP-aware bot detectors because
+the DevTools Protocol `Runtime.enable` call leaks. For maximum stealth, switch to
+the [`patchright`](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright) driver — a
+CDP-leak-free Playwright fork — and let the browser's real fingerprint show
+through (disable the JavaScript-surface patches, which would reintroduce signals).
+
+```bash
+pip install "webskrap[stealth]"
+patchright install chromium
+```
+
+```python
+from webskrap import SessionConfig, StealthConfig
+
+config = SessionConfig(
+    driver="patchright",
+    channel="chrome",          # real Chrome beats anti-detect tampering checks
+    headless=False,            # headed clears headless-only behavioral signals
+    stealth=StealthConfig(enabled=False),
+)
+```
+
+With this configuration WebSkrap passes reCAPTCHA v3 (human score), Cloudflare
+Turnstile (non-interactive), BrowserScan, the FingerprintJS web-scraping demo,
+and deviceandbrowserinfo behavioral detection. See
+[tests/test_bot_detection.py](tests/test_bot_detection.py) (run with
+`WEBSKRAP_LIVE=1`). The `patchright` driver needs Google Chrome installed and the
+`stealth` extra; without a `user_data_dir` it uses a throwaway persistent profile,
+which patchright requires for full stealth.
+
 ## CLI
 
 ```bash

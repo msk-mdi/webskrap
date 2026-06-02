@@ -10,14 +10,19 @@ They are skipped by default (and in CI) because the services are slow and may
 change their markup or scoring at any time. They only exercise public detection
 demos meant for this purpose — no CAPTCHA solving or access-control bypass.
 
-Current status: WebSkrap drives vanilla Chromium over the DevTools Protocol and
-applies JavaScript-surface patches via StealthConfig. That clears basic
-fingerprint checks (BrowserScan) but the CDP channel itself stays detectable
-(`isAutomatedWithCDP == true`), which trips CDP-aware and challenge-based
-detectors. Hiding CDP requires a patched browser binary, which WebSkrap does not
-ship. Toggling headless was verified to make no difference. The four tests below
-are therefore marked xfail(strict=True): they document the gap and will flip to
-XPASS — failing the run — if stealth ever improves enough to beat them.
+They pass with the patchright stealth driver (``driver="patchright"``), which is
+a CDP-leak-free Playwright fork, run headed against the real Chrome channel:
+
+- patchright hides the CDP ``Runtime.enable`` leak (``isAutomatedWithCDP``);
+- headed mode clears headless-only behavioral signals;
+- the real Chrome channel avoids FingerprintJS's anti-detect tampering signal
+  that flags patchright's bundled Chromium;
+- WebSkrap's own JS-surface patches and synthetic profile (viewport, locale,
+  timezone, Accept-Language) are disabled so the browser's real fingerprint
+  shows through instead of a spoofed one.
+
+Requires Google Chrome installed on the host and the optional stealth extra
+(``pip install webskrap[stealth]`` plus ``patchright install chromium``).
 """
 
 from __future__ import annotations
@@ -31,7 +36,18 @@ from webskrap import SessionConfig, StealthConfig, WebSkrapClient
 
 pytestmark = [pytest.mark.browser, pytest.mark.live]
 
-STEALTH = SessionConfig(headless=True, stealth=StealthConfig(enabled=True))
+# patchright is a CDP-leak-free Playwright fork; it is the stealth mechanism, so
+# WebSkrap's own JS-surface patches are disabled to avoid reintroducing leaks.
+# Headed mode is required: headless Chromium is flagged by behavioral signals
+# regardless of CDP hiding. The real Chrome channel (not patchright's bundled
+# Chromium) is required to clear FingerprintJS's anti-detect tampering signal, so
+# Google Chrome must be installed on the host.
+STEALTH = SessionConfig(
+    driver="patchright",
+    channel="chrome",
+    headless=False,
+    stealth=StealthConfig(enabled=False),
+)
 
 
 @pytest.fixture(autouse=True)
@@ -43,7 +59,7 @@ def _require_live() -> None:
 @asynccontextmanager
 async def stealth_page():
     # Yield a stealth page, skipping if Playwright/browser is unavailable.
-    client = WebSkrapClient()
+    client = WebSkrapClient(default_config=STEALTH)
     try:
         await client.start()
         session = await client.session("bot-detect", config=STEALTH, profile="desktop-chrome")
@@ -57,10 +73,6 @@ async def stealth_page():
         await client.close()
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="reCAPTCHA v3 does not return a human-range score for CDP-driven Chromium",
-)
 async def test_recaptcha_v3() -> None:
     # reCAPTCHA v3 score must be >= 0.7 (human range).
     async with stealth_page() as page:
@@ -80,10 +92,6 @@ async def test_recaptcha_v3() -> None:
     assert score >= 0.7, f"reCAPTCHA v3 score too low: {score}"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Turnstile managed challenge does not auto-issue a token for CDP-driven Chromium",
-)
 async def test_cloudflare_turnstile_non_interactive() -> None:
     # Cloudflare Turnstile (managed/non-interactive) must auto-issue a token.
     async with stealth_page() as page:
@@ -127,12 +135,8 @@ async def test_browserscan_bot_detection() -> None:
     )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="FingerprintJS web-scraping demo withholds results from CDP-driven Chromium",
-)
 async def test_fingerprintjs_web_scraping_demo() -> None:
-    # FingerprintJS web-scraping demo must not block us as a bot.
+    # FingerprintJS web-scraping demo must return flight prices, not block us.
     async with stealth_page() as page:
         await page.goto(
             "https://demo.fingerprint.com/web-scraping",
@@ -140,19 +144,16 @@ async def test_fingerprintjs_web_scraping_demo() -> None:
             timeout=60_000,
         )
         await page.wait_for_timeout(8_000)
-        try:
-            await page.click("button:has-text('Search')", timeout=5_000)
-            await page.wait_for_timeout(5_000)
-        except Exception:  # noqa: BLE001 - button is optional, layout may vary
-            pass
+        await page.get_by_role("button", name="Search").click(timeout=8_000)
+        await page.wait_for_timeout(6_000)
         result = await page.evaluate(
             """() => {
                 const text = document.body.innerText;
                 const blocked =
+                    text.includes('access denied') ||
                     text.includes('request was blocked') ||
                     text.includes('bot visit detected');
-                const flights =
-                    text.includes('Price per adult') || text.includes('$');
+                const flights = text.includes('$') || text.includes('Buy');
                 return {blocked, flights};
             }"""
         )
@@ -160,10 +161,6 @@ async def test_fingerprintjs_web_scraping_demo() -> None:
     assert result["flights"], "FingerprintJS: no flight data returned"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="deviceandbrowserinfo flags isAutomatedWithCDP; CDP channel is detectable",
-)
 async def test_device_and_browser_info_behavioral() -> None:
     # deviceandbrowserinfo.com behavioral detection: isBot must be false.
     async with stealth_page() as page:

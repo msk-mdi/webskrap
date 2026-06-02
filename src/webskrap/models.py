@@ -145,6 +145,7 @@ class BrowserProfile(BaseModel):
 class SessionConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
 
+    driver: Literal["playwright", "patchright"] = "playwright"
     browser: Literal["chromium", "firefox", "webkit"] = "chromium"
     channel: str | None = None
     headless: bool = True
@@ -176,7 +177,14 @@ class SessionConfig(BaseModel):
         return options
 
     def context_options(self, profile: BrowserProfile) -> dict[str, Any]:
-        options = profile.to_context_options()
+        if self.driver == "patchright":
+            # patchright defeats CDP-aware detectors by presenting the browser's
+            # real fingerprint. Injecting a synthetic viewport, locale, timezone,
+            # or Accept-Language header reintroduces behavioral bot signals, so we
+            # let the real environment show through instead of the profile.
+            options: dict[str, Any] = {"no_viewport": True}
+        else:
+            options = profile.to_context_options()
         options.update(
             {
                 "ignore_https_errors": self.ignore_https_errors,

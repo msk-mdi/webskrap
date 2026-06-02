@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import shutil
+import tempfile
 import time
 from collections.abc import Mapping
 from pathlib import Path
@@ -7,13 +9,36 @@ from random import uniform
 from typing import Any, Literal
 from uuid import uuid4
 
-from playwright.async_api import Browser, BrowserContext, Page, Playwright, async_playwright
+from playwright.async_api import Browser, BrowserContext, Page, Playwright
 
 from webskrap.models import BrowserProfile, FetchResult, ResourcePolicy, SessionConfig
 from webskrap.profiles import get_profile
 from webskrap.stealth import apply_stealth
 
 WaitUntil = Literal["commit", "domcontentloaded", "load", "networkidle"]
+
+
+def _async_playwright(driver: str):
+    """Return the async_playwright factory for the chosen driver.
+
+    ``patchright`` is a drop-in, API-compatible fork of Playwright that hides the
+    CDP ``Runtime.enable`` leak used by CDP-aware bot detectors. It requires the
+    optional ``stealth`` extra (``pip install webskrap[stealth]``) and its own
+    browser download (``patchright install chromium``).
+    """
+    if driver == "patchright":
+        try:
+            from patchright.async_api import async_playwright
+        except ImportError as exc:  # pragma: no cover - optional dependency
+            msg = (
+                "driver='patchright' requires the optional dependency: "
+                "pip install webskrap[stealth] && patchright install chromium"
+            )
+            raise WebSkrapError(msg) from exc
+        return async_playwright()
+    from playwright.async_api import async_playwright
+
+    return async_playwright()
 
 _CURSOR_HINT_ENABLE_SCRIPT = """
 () => {
@@ -77,12 +102,14 @@ class WebSkrapSession:
         config: SessionConfig,
         profile: BrowserProfile,
         browser: Browser | None = None,
+        temp_user_data_dir: str | None = None,
     ) -> None:
         self.name = name
         self.context = context
         self.config = config
         self.profile = profile
         self.browser = browser
+        self._temp_user_data_dir = temp_user_data_dir
         self._closed = False
 
     async def __aenter__(self) -> WebSkrapSession:
@@ -199,6 +226,9 @@ class WebSkrapSession:
         await self.context.close()
         if self.browser is not None:
             await self.browser.close()
+        if self._temp_user_data_dir is not None:
+            shutil.rmtree(self._temp_user_data_dir, ignore_errors=True)
+            self._temp_user_data_dir = None
 
     def _ensure_open(self) -> None:
         if self._closed:
@@ -229,7 +259,7 @@ class WebSkrapClient:
     async def start(self) -> None:
         if self._playwright is not None:
             return
-        self._playwright_manager = async_playwright()
+        self._playwright_manager = _async_playwright(self.default_config.driver)
         self._playwright = await self._playwright_manager.start()
 
     async def close(self) -> None:
@@ -300,10 +330,18 @@ class WebSkrapClient:
         browser_type = getattr(self._playwright, config.browser)
         context_options = config.context_options(profile)
 
-        if config.user_data_dir is not None:
-            config.user_data_dir.mkdir(parents=True, exist_ok=True)
+        # patchright's stealth is only fully effective in a persistent context, so
+        # fall back to a throwaway temp profile when the caller did not supply one.
+        temp_user_data_dir: str | None = None
+        user_data_dir = config.user_data_dir
+        if user_data_dir is None and config.driver == "patchright":
+            temp_user_data_dir = tempfile.mkdtemp(prefix="webskrap-patchright-")
+            user_data_dir = Path(temp_user_data_dir)
+
+        if user_data_dir is not None:
+            user_data_dir.mkdir(parents=True, exist_ok=True)
             context = await browser_type.launch_persistent_context(
-                str(config.user_data_dir),
+                str(user_data_dir),
                 **config.launch_options(),
                 **context_options,
             )
@@ -326,6 +364,7 @@ class WebSkrapClient:
             config=config,
             profile=profile,
             browser=browser,
+            temp_user_data_dir=temp_user_data_dir,
         )
 
 

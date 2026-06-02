@@ -41,6 +41,9 @@ docs = [
   "mkdocstrings[python]>=0.27",
   "pymdown-extensions>=10.12",
 ]
+stealth = [
+    "patchright>=1.60.0",
+]
 
 [project.scripts]
 webskrap = "webskrap.cli:app"
