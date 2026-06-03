@@ -11,10 +11,15 @@ change their markup or scoring at any time. They only exercise public detection
 demos meant for this purpose — no CAPTCHA solving or access-control bypass.
 
 They pass with the patchright stealth driver (``driver="patchright"``), which is
-a CDP-leak-free Playwright fork, run headed against the real Chrome channel:
+a CDP-leak-free Playwright fork, run headless against the real Chrome channel
+with a simulated screen and a masked headless user agent:
 
 - patchright hides the CDP ``Runtime.enable`` leak (``isAutomatedWithCDP``);
-- headed mode clears headless-only behavioral signals;
+- ``headless_screen`` configures a virtual display at launch so screen/window
+  metrics stay coherent instead of leaking the 800x600 headless default;
+- ``mask_headless_user_agent`` rewrites the ``HeadlessChrome`` UA tell (main
+  thread plus workers, including ``SharedWorker``) to ``Chrome`` via the
+  browser's own ``--user-agent`` override;
 - the real Chrome channel avoids FingerprintJS's anti-detect tampering signal
   that flags patchright's bundled Chromium;
 - WebSkrap avoids JavaScript fingerprint spoofing and synthetic profile
@@ -32,19 +37,22 @@ from contextlib import asynccontextmanager
 
 import pytest
 
-from webskrap import SessionConfig, WebSkrapClient
+from webskrap import SessionConfig, Viewport, WebSkrapClient
 
 pytestmark = [pytest.mark.browser, pytest.mark.live]
 
 # patchright is a CDP-leak-free Playwright fork; it is the stealth mechanism.
-# Headed mode is required: headless Chromium is flagged by behavioral signals
-# regardless of CDP hiding. The real Chrome channel (not patchright's bundled
-# Chromium) is required to clear FingerprintJS's anti-detect tampering signal, so
-# Google Chrome must be installed on the host.
+# Run headless against the real Chrome channel with a simulated screen and a
+# masked headless user agent: headless_screen gives coherent screen/window
+# metrics, and mask_headless_user_agent rewrites the "HeadlessChrome" UA tell
+# (main + worker) to "Chrome" via the browser's own UA override. Google Chrome
+# must be installed on the host.
 STEALTH = SessionConfig(
     driver="patchright",
     channel="chrome",
-    headless=False,
+    headless=True,
+    headless_screen=Viewport(width=1366, height=768),
+    mask_headless_user_agent=True,
 )
 
 

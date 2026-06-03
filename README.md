@@ -283,6 +283,14 @@ Headless mode is inherently more detectable than headed mode. WebSkrap keeps the
 browser surfaces native instead of spoofing them with JavaScript, because broad
 fingerprint patches can look like tampering.
 
+Headless Chrome has no physical display, so it otherwise reports an 800x600
+screen with zero `outerWidth`/`outerHeight` — an obvious headless tell. For
+chromium headless runs WebSkrap configures a virtual screen at launch
+(`--screen-info`, `--window-size`, `--window-position`), giving coherent
+`screen`/`window` metrics without JavaScript spoofing. It defaults to 1920x1080;
+override with `headless_screen=Viewport(width=..., height=...)` or disable with
+`headless_screen=None`.
+
 ## CLI
 
 ```bash

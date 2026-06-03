@@ -146,6 +146,21 @@ class SessionConfig(BaseModel):
     default_timeout_ms: float = Field(default=30_000, gt=0)
     slow_mo_ms: float | None = Field(default=None, ge=0)
     launch_args: list[str] = Field(default_factory=list)
+    # Simulated screen for headless chromium. Headless Chrome has no physical
+    # display, so screen/window metrics (screen.width, outerWidth, ...) leak as
+    # headless tells. A virtual screen of this size is configured at launch via
+    # browser flags (not JS spoofing), giving coherent metrics. Set to None to
+    # disable.
+    headless_screen: Viewport | None = Field(
+        default_factory=lambda: Viewport(width=1920, height=1080)
+    )
+    # Headless Chrome stamps "HeadlessChrome" into navigator.userAgent (and the
+    # worker UA), the one fingerprint tell that survives patchright. When True
+    # for a headless chromium run, WebSkrap probes the real UA and re-applies it
+    # with "HeadlessChrome" rewritten to "Chrome" via the browser's own UA
+    # override (covering workers and client hints) — not JavaScript spoofing.
+    # Off by default so headless stays honestly headless unless opted in.
+    mask_headless_user_agent: bool = False
 
     def launch_options(self) -> dict[str, Any]:
         options: dict[str, Any] = {
@@ -156,9 +171,29 @@ class SessionConfig(BaseModel):
             options["channel"] = self.channel
         if self.slow_mo_ms is not None:
             options["slow_mo"] = self.slow_mo_ms
-        if self.launch_args:
-            options["args"] = self.launch_args
+        args = self._screen_args() + list(self.launch_args)
+        if args:
+            options["args"] = args
         return options
+
+    def _screen_args(self) -> list[str]:
+        # Configure a virtual screen for headless chromium so the browser
+        # reports real display metrics instead of headless defaults. Skips any
+        # flag the caller already set in launch_args (their value wins).
+        if not (self.headless and self.browser == "chromium" and self.headless_screen):
+            return []
+        width, height = self.headless_screen.width, self.headless_screen.height
+        candidates = {
+            "--window-size": f"--window-size={width},{height}",
+            "--window-position": "--window-position=0,0",
+            # Chrome headless virtual-display flag: defines a screen at 0,0.
+            "--screen-info": f"--screen-info={{{width}x{height}}}",
+        }
+        return [
+            arg
+            for prefix, arg in candidates.items()
+            if not any(a.startswith(prefix) for a in self.launch_args)
+        ]
 
     def context_options(self, profile: BrowserProfile) -> dict[str, Any]:
         if self.driver == "patchright":

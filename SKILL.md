@@ -128,7 +128,7 @@ config = SessionConfig(
 )
 ```
 
-Use headless Patchright as best-effort stealth. Prefer a stable `user_data_dir`; do not add JavaScript fingerprint spoofing unless the project explicitly reintroduces and tests it.
+Use headless Patchright as best-effort stealth. Prefer a stable `user_data_dir`; do not add JavaScript fingerprint spoofing unless the project explicitly reintroduces and tests it. Chromium headless runs get a virtual screen at launch (default 1920x1080) so `screen`/`window` metrics stay coherent instead of leaking the 800x600 headless default; tune via `headless_screen` (a `Viewport`, or `None` to disable).
 
 CLI fetch:
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import shutil
 import tempfile
 import time
@@ -328,6 +329,25 @@ class WebSkrapClient:
 
         browser_type = getattr(self._playwright, config.browser)
         context_options = config.context_options(profile)
+        launch_options = config.launch_options()
+
+        if (
+            config.mask_headless_user_agent
+            and config.headless
+            and config.browser == "chromium"
+        ):
+            clean_ua = await self._headless_clean_user_agent(browser_type, config)
+            if clean_ua:
+                # Apply the clean UA via the launch flag only. It covers the
+                # page, every worker (including SharedWorker, a separate process)
+                # and request headers process-wide. A per-context user_agent
+                # override is intentionally avoided: it makes patchright inject a
+                # CDP UA override into every frame/worker, which stalls
+                # reCAPTCHA's worker init under some event loops.
+                args = list(launch_options.get("args", []))
+                if not any(a.startswith("--user-agent") for a in args):
+                    args.append(f"--user-agent={clean_ua}")
+                launch_options["args"] = args
 
         # patchright's stealth is only fully effective in a persistent context, so
         # fall back to a throwaway temp profile when the caller did not supply one.
@@ -341,12 +361,12 @@ class WebSkrapClient:
             user_data_dir.mkdir(parents=True, exist_ok=True)
             context = await browser_type.launch_persistent_context(
                 str(user_data_dir),
-                **config.launch_options(),
+                **launch_options,
                 **context_options,
             )
             browser = None
         else:
-            browser = await browser_type.launch(**config.launch_options())
+            browser = await browser_type.launch(**launch_options)
             context = await browser.new_context(**context_options)
 
         context.set_default_timeout(config.default_timeout_ms)
@@ -362,6 +382,31 @@ class WebSkrapClient:
             browser=browser,
             temp_user_data_dir=temp_user_data_dir,
         )
+
+
+    async def _headless_clean_user_agent(
+        self, browser_type: Any, config: SessionConfig
+    ) -> str | None:
+        # Probe the real headless UA in a throwaway browser, then rewrite the
+        # "HeadlessChrome" token to "Chrome". Returns None if the probe fails or
+        # the UA has no headless tell, leaving the native UA untouched.
+        launch_options = config.launch_options()
+        launch_options.pop("args", None)
+        try:
+            browser = await browser_type.launch(**launch_options)
+        except Exception:  # noqa: BLE001 - probe is best-effort
+            return None
+        try:
+            page = await browser.new_page()
+            ua = await page.evaluate("() => navigator.userAgent")
+        except Exception:  # noqa: BLE001 - probe is best-effort
+            return None
+        finally:
+            await browser.close()
+            await asyncio.sleep(2)
+        if not isinstance(ua, str) or "HeadlessChrome" not in ua:
+            return None
+        return ua.replace("HeadlessChrome", "Chrome")
 
 
 def _resource_route_handler(policy: ResourcePolicy):
