@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from typing import Annotated, cast
+from typing import Annotated, Literal, cast
 
 import typer
 from rich.console import Console
@@ -14,6 +14,7 @@ from webskrap.profiles import get_profile, list_profiles
 
 app = typer.Typer(help="WebSkrap browser scraping toolkit.")
 console = Console()
+Driver = Literal["playwright", "patchright"]
 
 
 @app.command("profiles")
@@ -72,6 +73,10 @@ def fetch_command(
         typer.Option("--profile", "-p", help="Bundled profile name."),
     ] = "desktop-chrome",
     headed: Annotated[bool, typer.Option("--headed", help="Run with a visible browser.")] = False,
+    driver: Annotated[
+        str,
+        typer.Option("--driver", help="Browser driver: playwright or patchright."),
+    ] = "playwright",
     channel: Annotated[
         str | None,
         typer.Option("--channel", help="Browser channel, e.g. chrome."),
@@ -96,23 +101,19 @@ def fetch_command(
         ResourcePolicy,
         typer.Option("--resource-policy", help="Resource routing preset."),
     ] = ResourcePolicy.ALL,
-    no_stealth: Annotated[
-        bool,
-        typer.Option("--no-stealth", help="Disable browser hardening."),
-    ] = False,
 ) -> None:
     asyncio.run(
         _fetch(
             url=url,
             profile=profile,
             headed=headed,
+            driver=driver,
             channel=channel,
             screenshot=screenshot,
             output=output,
             wait_until=wait_until,
             timeout_ms=timeout_ms,
             resource_policy=resource_policy,
-            no_stealth=no_stealth,
         )
     )
 
@@ -122,22 +123,22 @@ async def _fetch(
     url: str,
     profile: str,
     headed: bool,
+    driver: str,
     channel: str | None,
     screenshot: Path | None,
     output: Path | None,
     wait_until: str,
     timeout_ms: float,
     resource_policy: ResourcePolicy,
-    no_stealth: bool,
 ) -> None:
     selected_profile = get_profile(profile)
     config = SessionConfig(
+        driver=_parse_driver(driver),
         headless=not headed,
         channel=channel,
         navigation_timeout_ms=timeout_ms,
         resource_policy=resource_policy,
     )
-    config.stealth.enabled = not no_stealth
 
     async with WebSkrapClient() as client:
         result = await client.fetch(
@@ -168,3 +169,11 @@ def _parse_wait_until(value: str) -> WaitUntil:
         allowed = ", ".join(valid)
         raise typer.BadParameter(f"must be one of: {allowed}")
     return cast(WaitUntil, value)
+
+
+def _parse_driver(value: str) -> Driver:
+    valid = ("playwright", "patchright")
+    if value not in valid:
+        allowed = ", ".join(valid)
+        raise typer.BadParameter(f"must be one of: {allowed}")
+    return cast(Driver, value)

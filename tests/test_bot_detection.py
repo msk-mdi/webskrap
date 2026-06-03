@@ -17,9 +17,9 @@ a CDP-leak-free Playwright fork, run headed against the real Chrome channel:
 - headed mode clears headless-only behavioral signals;
 - the real Chrome channel avoids FingerprintJS's anti-detect tampering signal
   that flags patchright's bundled Chromium;
-- WebSkrap's own JS-surface patches and synthetic profile (viewport, locale,
-  timezone, Accept-Language) are disabled so the browser's real fingerprint
-  shows through instead of a spoofed one.
+- WebSkrap avoids JavaScript fingerprint spoofing and synthetic profile
+  injection, so the browser's real fingerprint shows through instead of a
+  spoofed one.
 
 Requires Google Chrome installed on the host and the optional stealth extra
 (``pip install webskrap[stealth]`` plus ``patchright install chromium``).
@@ -32,12 +32,11 @@ from contextlib import asynccontextmanager
 
 import pytest
 
-from webskrap import SessionConfig, StealthConfig, WebSkrapClient
+from webskrap import SessionConfig, WebSkrapClient
 
 pytestmark = [pytest.mark.browser, pytest.mark.live]
 
-# patchright is a CDP-leak-free Playwright fork; it is the stealth mechanism, so
-# WebSkrap's own JS-surface patches are disabled to avoid reintroducing leaks.
+# patchright is a CDP-leak-free Playwright fork; it is the stealth mechanism.
 # Headed mode is required: headless Chromium is flagged by behavioral signals
 # regardless of CDP hiding. The real Chrome channel (not patchright's bundled
 # Chromium) is required to clear FingerprintJS's anti-detect tampering signal, so
@@ -46,7 +45,6 @@ STEALTH = SessionConfig(
     driver="patchright",
     channel="chrome",
     headless=False,
-    stealth=StealthConfig(enabled=False),
 )
 
 
@@ -81,7 +79,10 @@ async def test_recaptcha_v3() -> None:
             wait_until="domcontentloaded",
             timeout=60_000,
         )
-        await page.wait_for_timeout(8_000)
+        await page.wait_for_function(
+            """() => /"score":\\s*\\d+\\.\\d+/.test(document.body.innerText)""",
+            timeout=45_000,
+        )
         score = await page.evaluate(
             """() => {
                 const m = document.body.innerText.match(/"score":\\s*(\\d+\\.\\d+)/);
@@ -92,24 +93,69 @@ async def test_recaptcha_v3() -> None:
     assert score >= 0.7, f"reCAPTCHA v3 score too low: {score}"
 
 
-async def test_cloudflare_turnstile_non_interactive() -> None:
-    # Cloudflare Turnstile (managed/non-interactive) must auto-issue a token.
+async def test_cloudflare_turnstile_demo() -> None:
+    # The public demo uses Cloudflare's testing key. Click the visible Turnstile
+    # frame when Cloudflare asks for interaction, submit the form, then verify
+    # the demo renders Cloudflare's success JSON.
     async with stealth_page() as page:
         await page.goto(
             "https://2captcha.com/demo/cloudflare-turnstile",
             wait_until="domcontentloaded",
             timeout=60_000,
         )
-        await page.wait_for_timeout(10_000)
-        token = await page.evaluate(
+        await page.wait_for_function(
+            """() => {
+                const widget = document.querySelector('.cf-turnstile');
+                const el = document.querySelector(
+                    'input[name="cf-turnstile-response"]'
+                );
+                return Boolean(widget || el);
+            }""",
+            timeout=45_000,
+        )
+        token = ""
+        clicked_frame = False
+        for _ in range(30):
+            token = await page.evaluate(
+                """() => {
+                    const el = document.querySelector(
+                        'input[name="cf-turnstile-response"]'
+                    );
+                    return el ? el.value : "";
+                }"""
+            )
+            if token and len(token) > 20:
+                break
+            turnstile_frame = next(
+                (frame for frame in page.frames if "challenges.cloudflare.com" in frame.url),
+                None,
+            )
+            if turnstile_frame is not None and not clicked_frame:
+                await turnstile_frame.locator("body").click(timeout=10_000)
+                clicked_frame = True
+            await page.wait_for_timeout(1_000)
+        await page.locator('button[data-action="demo_action"]').click(timeout=10_000)
+        await page.wait_for_function(
+            """() => document.body.innerText.includes('"success": true')""",
+            timeout=15_000,
+        )
+        result = await page.evaluate(
             """() => {
                 const el = document.querySelector(
                     'input[name="cf-turnstile-response"]'
                 );
-                return el ? el.value : "";
+                const successCode = [...document.querySelectorAll('code')]
+                    .map((el) => el.innerText)
+                    .find((text) => text.includes('"success": true')) || "";
+                return {
+                    token: el ? el.value : "",
+                    successCode,
+                };
             }"""
         )
-    assert token and len(token) > 20, f"Turnstile did not pass non-interactively (token={token!r})"
+    assert token and len(token) > 20, "Turnstile token missing before form submit"
+    assert result["token"] and len(result["token"]) > 20, f"Turnstile token missing: {result}"
+    assert '"success": true' in result["successCode"], f"Turnstile success JSON missing: {result}"
 
 
 async def test_browserscan_bot_detection() -> None:

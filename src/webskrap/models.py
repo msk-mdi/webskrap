@@ -47,19 +47,6 @@ class ProxyConfig(BaseModel):
         return payload
 
 
-class StealthConfig(BaseModel):
-    enabled: bool = True
-    patch_webdriver: bool = True
-    patch_headless_user_agent: bool = False
-    patch_window_metrics: bool = False
-    patch_chrome_runtime: bool = True
-    patch_permissions: bool = True
-    patch_plugins: bool = True
-    patch_webgl: bool = True
-    patch_canvas: bool = True
-    patch_hardware: bool = True
-
-
 class BrowserProfile(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -76,10 +63,6 @@ class BrowserProfile(BaseModel):
     reduced_motion: Literal["reduce", "no-preference", "null"] = "no-preference"
     extra_http_headers: dict[str, str] = Field(default_factory=dict)
     navigator_languages: list[str] = Field(default_factory=lambda: ["en-US", "en"])
-    hardware_concurrency: int = Field(default=8, ge=1, le=64)
-    device_memory: int = Field(default=8, ge=1, le=128)
-    webgl_vendor: str = "Google Inc. (Intel)"
-    webgl_renderer: str = "ANGLE (Intel, Intel(R) Iris(TM) Plus Graphics, OpenGL 4.1)"
 
     @field_validator("name")
     @classmethod
@@ -155,7 +138,6 @@ class SessionConfig(BaseModel):
     storage_state: Path | dict[str, Any] | None = None
     proxy: ProxyConfig | None = None
     resource_policy: ResourcePolicy = ResourcePolicy.ALL
-    stealth: StealthConfig = Field(default_factory=StealthConfig)
     ignore_https_errors: bool = False
     java_script_enabled: bool = True
     service_workers: Literal["allow", "block"] = "allow"
@@ -185,10 +167,6 @@ class SessionConfig(BaseModel):
             # or Accept-Language header reintroduces behavioral bot signals, so we
             # let the real environment show through instead of the profile.
             options: dict[str, Any] = {"no_viewport": True}
-            if self.headless and self.stealth.patch_headless_user_agent:
-                options["extra_http_headers"] = profile.headers()
-                if profile.user_agent:
-                    options["user_agent"] = profile.user_agent
         else:
             options = profile.to_context_options()
         options.update(

@@ -11,10 +11,6 @@ _PROFILES: dict[str, BrowserProfile] = {
         timezone_id="Europe/Paris",
         device_scale_factor=1,
         navigator_languages=["en-US", "en"],
-        hardware_concurrency=8,
-        device_memory=8,
-        webgl_vendor="Google Inc. (Intel)",
-        webgl_renderer="ANGLE (Intel, Intel(R) Iris(TM) Plus Graphics, OpenGL 4.1)",
     ),
     "desktop-edge": BrowserProfile(
         name="desktop-edge",
@@ -24,10 +20,6 @@ _PROFILES: dict[str, BrowserProfile] = {
         timezone_id="Europe/Paris",
         device_scale_factor=1,
         navigator_languages=["en-US", "en"],
-        hardware_concurrency=8,
-        device_memory=8,
-        webgl_vendor="Google Inc. (NVIDIA)",
-        webgl_renderer="ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0)",
     ),
     "mobile-chrome": BrowserProfile(
         name="mobile-chrome",
@@ -43,10 +35,6 @@ _PROFILES: dict[str, BrowserProfile] = {
         is_mobile=True,
         has_touch=True,
         navigator_languages=["en-US", "en"],
-        hardware_concurrency=8,
-        device_memory=8,
-        webgl_vendor="Google Inc. (Qualcomm)",
-        webgl_renderer="ANGLE (Qualcomm, Adreno (TM) 730, OpenGL ES 3.2)",
     ),
 }
 

@@ -6,7 +6,7 @@
 
 <p align="center">
    <strong>Async-first Python scraping framework built on Playwright.</strong><br>
-   <em>It provides coherent browser profiles, persistent sessions, resource routing, and configurable browser hardening for data collection workflows that need realistic browser behavior.</em>
+   <em>It provides coherent browser profiles, persistent sessions, resource routing, and Patchright-powered stealth for data collection workflows that need realistic browser behavior.</em>
 </p>
 
 WebSkrap does not include CAPTCHA solving, login-wall bypassing, credential bypassing, or access-control circumvention. Use it only on targets you are allowed to access.
@@ -227,41 +227,16 @@ profile = BrowserProfile(
     reduced_motion="no-preference",
     extra_http_headers={},
     navigator_languages=["fr-FR", "fr", "en-US", "en"],
-    hardware_concurrency=8,
-    device_memory=8,
-    webgl_vendor="Google Inc. (Intel)",
-    webgl_renderer="ANGLE (Intel, Intel(R) Iris(TM) Plus Graphics, OpenGL 4.1)",
 )
 ```
 
-## Stealth Options
-
-```python
-from webskrap import SessionConfig, StealthConfig
-
-config = SessionConfig(
-    stealth=StealthConfig(
-        enabled=True,
-        patch_webdriver=True,
-        patch_headless_user_agent=False,
-        patch_window_metrics=False,
-        patch_chrome_runtime=True,
-        patch_permissions=True,
-        patch_plugins=True,
-        patch_webgl=True,
-        patch_canvas=True,
-        patch_hardware=True,
-    )
-)
-```
-
-### patchright driver
+## Patchright Stealth
 
 The default `playwright` driver is detectable by CDP-aware bot detectors because
 the DevTools Protocol `Runtime.enable` call leaks. For maximum stealth, switch to
 the [`patchright`](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright) driver — a
-CDP-leak-free Playwright fork — and let the browser's real fingerprint show
-through (disable the JavaScript-surface patches, which would reintroduce signals).
+CDP-leak-free Playwright fork — and let the browser's real fingerprint show through.
+WebSkrap does not inject JavaScript stealth patches.
 
 ```bash
 pip install "webskrap[stealth]"
@@ -269,13 +244,12 @@ patchright install chromium
 ```
 
 ```python
-from webskrap import SessionConfig, StealthConfig
+from webskrap import SessionConfig
 
 config = SessionConfig(
     driver="patchright",
     channel="chrome",          # real Chrome beats anti-detect tampering checks
     headless=False,            # headed clears headless-only behavioral signals
-    stealth=StealthConfig(enabled=False),
 )
 ```
 
@@ -289,35 +263,25 @@ which patchright requires for full stealth.
 
 ### Headless patchright
 
-Headed patchright is the strongest stealth mode. For headless runs, enable only
-the targeted headless patches you need and prefer a stable persistent profile.
+Headed patchright is the strongest stealth mode. For best-effort headless runs,
+prefer real Chrome plus a stable persistent profile.
 
 ```python
 from pathlib import Path
 
-from webskrap import SessionConfig, StealthConfig
+from webskrap import SessionConfig
 
 config = SessionConfig(
     driver="patchright",
     channel="chrome",
     headless=True,
     user_data_dir=Path(".webskrap/headless-profile"),
-    stealth=StealthConfig(
-        enabled=True,
-        patch_headless_user_agent=True,
-        patch_window_metrics=True,
-        patch_webdriver=True,
-        patch_webgl=False,
-        patch_canvas=False,
-    ),
 )
 ```
 
-`patch_headless_user_agent` removes `HeadlessChrome` from JavaScript-visible
-browser strings and, when a profile user agent is set, applies coherent request
-headers. `patch_window_metrics` fills common headless gaps in window and screen
-dimensions. Keep WebGL and canvas patches off unless a target proves they help,
-because broad fingerprint spoofing can look like tampering.
+Headless mode is inherently more detectable than headed mode. WebSkrap keeps the
+browser surfaces native instead of spoofing them with JavaScript, because broad
+fingerprint patches can look like tampering.
 
 ## CLI
 
@@ -326,6 +290,7 @@ webskrap profiles
 webskrap doctor
 webskrap fetch https://example.com --profile desktop-chrome
 webskrap fetch https://example.com --headed --screenshot example.png
+webskrap fetch https://example.com --driver patchright --channel chrome --headed
 ```
 
 ## Performance Benchmarks

@@ -1,6 +1,6 @@
 ---
 name: webskrap
-description: Use when writing Python scraping or browser automation code with WebSkrap, including async fetches, persistent sessions, browser profiles, resource policies, Patchright stealth configuration, screenshots, and CLI usage.
+description: Use when writing Python scraping or browser automation code with WebSkrap, including async fetches, persistent sessions, browser profiles, resource policies, Patchright configuration, screenshots, and CLI usage.
 ---
 
 # WebSkrap
@@ -12,7 +12,7 @@ WebSkrap is an async-first Python scraping framework built on Playwright for rea
 - Writing Python code that fetches pages with `webskrap`.
 - Keeping browser state across requests with persistent sessions.
 - Configuring browser profiles, locale, timezone, viewport, proxy, or resource policy.
-- Configuring stealth mode with Playwright or Patchright.
+- Configuring Patchright for CDP-leak-free browser automation.
 - Taking screenshots or debugging with a headed browser.
 - Using the `webskrap` CLI.
 
@@ -94,7 +94,7 @@ from webskrap import ResourcePolicy, SessionConfig
 config = SessionConfig(resource_policy=ResourcePolicy.LITE)
 ```
 
-Patchright stealth:
+Patchright:
 
 ```bash
 pip install "webskrap[stealth]"
@@ -102,42 +102,33 @@ patchright install chromium
 ```
 
 ```python
-from webskrap import SessionConfig, StealthConfig
+from webskrap import SessionConfig
 
 config = SessionConfig(
     driver="patchright",
     channel="chrome",
     headless=False,
-    stealth=StealthConfig(enabled=False),
 )
 ```
 
-Use Patchright for CDP-aware detection surfaces. It uses a persistent context for full stealth; if `user_data_dir` is omitted, WebSkrap creates a temporary persistent profile. With Patchright, let the real browser fingerprint show through and disable JavaScript-surface patches with `StealthConfig(enabled=False)`.
+Use Patchright for CDP-aware detection surfaces. It uses a persistent context for full stealth; if `user_data_dir` is omitted, WebSkrap creates a temporary persistent profile. WebSkrap does not inject JavaScript stealth patches, so let the real browser fingerprint show through.
 
 Headless Patchright:
 
 ```python
 from pathlib import Path
 
-from webskrap import SessionConfig, StealthConfig
+from webskrap import SessionConfig
 
 config = SessionConfig(
     driver="patchright",
     channel="chrome",
     headless=True,
     user_data_dir=Path(".webskrap/headless-profile"),
-    stealth=StealthConfig(
-        enabled=True,
-        patch_headless_user_agent=True,
-        patch_window_metrics=True,
-        patch_webdriver=True,
-        patch_webgl=False,
-        patch_canvas=False,
-    ),
 )
 ```
 
-Use headless Patchright as best-effort stealth. Prefer a stable `user_data_dir`, patch only obvious headless leaks, and keep WebGL/canvas spoofing disabled unless a target proves those patches help.
+Use headless Patchright as best-effort stealth. Prefer a stable `user_data_dir`; do not add JavaScript fingerprint spoofing unless the project explicitly reintroduces and tests it.
 
 CLI fetch:
 
@@ -145,6 +136,7 @@ CLI fetch:
 webskrap doctor
 webskrap profiles
 webskrap fetch https://example.com --profile desktop-chrome --screenshot example.png
+webskrap fetch https://example.com --driver patchright --channel chrome --headed
 ```
 
 ## Reference Docs
@@ -155,5 +147,5 @@ webskrap fetch https://example.com --profile desktop-chrome --screenshot example
 - `docs/user-guide/sessions.md`: persistent sessions and human-like clicks.
 - `docs/user-guide/profiles.md`: built-in and custom browser profiles.
 - `docs/user-guide/resource-policy.md`: resource blocking policies.
-- `docs/user-guide/stealth.md`: browser hardening and Patchright configuration.
+- `docs/user-guide/stealth.md`: Patchright configuration.
 - `docs/api-reference.md`: public API reference.

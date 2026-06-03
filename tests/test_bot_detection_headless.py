@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 
 import pytest
 
-from webskrap import SessionConfig, StealthConfig, WebSkrapClient
+from webskrap import SessionConfig, WebSkrapClient
 
 pytestmark = [pytest.mark.browser, pytest.mark.live]
 
@@ -24,7 +24,6 @@ STEALTH_HEADLESS = SessionConfig(
     driver="patchright",
     channel="chrome",
     headless=True,
-    stealth=StealthConfig(enabled=False),
 )
 
 _HEADLESS_LABELS = {
@@ -84,7 +83,10 @@ async def test_recaptcha_v3_headless() -> None:
             wait_until="domcontentloaded",
             timeout=60_000,
         )
-        await page.wait_for_timeout(8_000)
+        await page.wait_for_function(
+            """() => /"score":\\s*\\d+\\.\\d+/.test(document.body.innerText)""",
+            timeout=45_000,
+        )
         score = await page.evaluate(
             """() => {
                 const m = document.body.innerText.match(/"score":\\s*(\\d+\\.\\d+)/);

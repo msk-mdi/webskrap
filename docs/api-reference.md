@@ -8,8 +8,6 @@
 
 ::: webskrap.SessionConfig
 
-::: webskrap.StealthConfig
-
 ::: webskrap.ProxyConfig
 
 ::: webskrap.ResourcePolicy

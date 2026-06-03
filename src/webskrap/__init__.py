@@ -5,7 +5,6 @@ from webskrap.models import (
     ProxyConfig,
     ResourcePolicy,
     SessionConfig,
-    StealthConfig,
     Viewport,
 )
 from webskrap.profiles import get_profile, list_profiles
@@ -16,7 +15,6 @@ __all__ = [
     "ProxyConfig",
     "ResourcePolicy",
     "SessionConfig",
-    "StealthConfig",
     "Viewport",
     "WebSkrapClient",
     "WebSkrapError",

@@ -13,7 +13,6 @@ from playwright.async_api import Browser, BrowserContext, Page, Playwright
 
 from webskrap.models import BrowserProfile, FetchResult, ResourcePolicy, SessionConfig
 from webskrap.profiles import get_profile
-from webskrap.stealth import apply_stealth
 
 WaitUntil = Literal["commit", "domcontentloaded", "load", "networkidle"]
 
@@ -355,9 +354,6 @@ class WebSkrapClient:
 
         if config.resource_policy != ResourcePolicy.ALL:
             await context.route("**/*", _resource_route_handler(config.resource_policy))
-        if config.stealth.enabled:
-            await apply_stealth(context, profile, config.stealth)
-
         return WebSkrapSession(
             name=name,
             context=context,

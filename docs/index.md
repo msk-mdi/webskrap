@@ -8,7 +8,7 @@ hide:
 
 # WebSkrap
 
-<p class="ws-tagline">Async-first Python scraping framework built on Playwright — coherent browser profiles, persistent sessions, resource routing, and configurable hardening for workflows that need realistic browser behavior.</p>
+<p class="ws-tagline">Async-first Python scraping framework built on Playwright — coherent browser profiles, persistent sessions, resource routing, and Patchright support for workflows that need realistic browser behavior.</p>
 
 <div class="ws-cta" markdown>
 [Get started](getting-started/installation.md){ .md-button .md-button--primary }
@@ -78,7 +78,7 @@ asyncio.run(main())
 
     ---
 
-    Configurable browser hardening and resource routing presets to shape network behavior.
+    Patchright support and resource routing presets to shape browser behavior.
 
     [:octicons-arrow-right-24: Stealth](user-guide/stealth.md)
 
