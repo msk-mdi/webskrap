@@ -86,13 +86,15 @@ def test_headless_screen_size_is_configurable() -> None:
 def test_headless_screen_can_be_disabled() -> None:
     config = SessionConfig(headless=True, headless_screen=None)
 
-    assert "args" not in config.launch_options()
+    args = config.launch_options()["args"]
+    assert not any(a.startswith("--window-size") or a.startswith("--screen-info") for a in args)
 
 
 def test_headed_mode_omits_simulated_screen() -> None:
     config = SessionConfig(driver="patchright", channel="chrome", headless=False)
 
-    assert "args" not in config.launch_options()
+    args = config.launch_options().get("args", [])
+    assert not any(a.startswith("--window-size") or a.startswith("--screen-info") for a in args)
 
 
 def test_user_launch_args_override_simulated_screen() -> None:
@@ -110,6 +112,22 @@ def test_non_chromium_headless_omits_simulated_screen() -> None:
     config = SessionConfig(browser="firefox", headless=True)
 
     assert "args" not in config.launch_options()
+
+
+def test_chromium_disables_automation_controlled() -> None:
+    args = SessionConfig(browser="chromium").launch_options()["args"]
+    assert "--disable-blink-features=AutomationControlled" in args
+
+
+def test_automation_flag_skipped_when_caller_sets_blink_features() -> None:
+    config = SessionConfig(launch_args=["--disable-blink-features=AutomationControlled,Foo"])
+    args = config.launch_options()["args"]
+    assert args.count("--disable-blink-features=AutomationControlled") == 0
+    assert "--disable-blink-features=AutomationControlled,Foo" in args
+
+
+def test_non_chromium_omits_automation_flag() -> None:
+    assert "args" not in SessionConfig(browser="firefox", headless=False).launch_options()
 
 
 def test_mask_headless_user_agent_defaults_off() -> None:

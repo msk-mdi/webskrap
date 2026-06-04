@@ -171,10 +171,23 @@ class SessionConfig(BaseModel):
             options["channel"] = self.channel
         if self.slow_mo_ms is not None:
             options["slow_mo"] = self.slow_mo_ms
-        args = self._screen_args() + list(self.launch_args)
+        args = self._automation_args() + self._screen_args() + list(self.launch_args)
         if args:
             options["args"] = args
         return options
+
+    def _automation_args(self) -> list[str]:
+        # Real Chrome exposes navigator.webdriver=true under automation, an
+        # instant tell for detectors like DataDome. patchright's bundled
+        # Chromium hides it, but the real Chrome channel does not reliably across
+        # Chrome releases, so set the flag explicitly. Skipped if the caller
+        # already passed it.
+        if self.browser != "chromium":
+            return []
+        flag = "--disable-blink-features=AutomationControlled"
+        if any(a.startswith("--disable-blink-features") for a in self.launch_args):
+            return []
+        return [flag]
 
     def _screen_args(self) -> list[str]:
         # Configure a virtual screen for headless chromium so the browser
