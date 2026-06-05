@@ -1,6 +1,6 @@
 # Quickstart
 
-## One-Shot Fetch
+## One-shot fetch
 
 ```python
 import asyncio
@@ -20,7 +20,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-## Keep A Headed Browser Open
+## Keep a headed browser open
 
 Use a session when you want the browser to remain open for inspection.
 
@@ -48,7 +48,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-## Human-like Clicks
+## Human-like clicks
 
 Use `human_click` for manual interactions that should wait for the element, scroll it into
 view, pause briefly, move the mouse, and then click.
@@ -68,7 +68,7 @@ await session.human_click(page, "label[for='radio1']")
 await session.disable_cursor_hint(page)
 ```
 
-## CLI Fetch
+## CLI fetch
 
 ```bash
 webskrap fetch https://example.com

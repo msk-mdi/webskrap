@@ -8,7 +8,7 @@ hide:
 
 # WebSkrap
 
-<p class="ws-tagline">Async-first Python scraping framework built on Playwright — coherent browser profiles, persistent sessions, resource routing, and Patchright support for workflows that need realistic browser behavior.</p>
+<p class="ws-tagline">Async-first Python scraping framework built on Playwright, with coherent browser profiles, persistent sessions, resource routing, and Patchright support for workflows that need realistic browser behavior.</p>
 
 <div class="ws-cta" markdown>
 [Get started](getting-started/installation.md){ .md-button .md-button--primary }
@@ -28,7 +28,7 @@ pip install webskrap
 python -m playwright install chromium
 ```
 
-## First Fetch
+## First fetch
 
 ```python
 import asyncio
@@ -50,7 +50,7 @@ asyncio.run(main())
 
 <div class="grid cards" markdown>
 
--   :material-lightning-bolt:{ .lg .middle } __Async by design__
+-   :material-lightning-bolt:{ .lg .middle } Async by design
 
     ---
 
@@ -58,7 +58,7 @@ asyncio.run(main())
 
     [:octicons-arrow-right-24: Client](user-guide/client.md)
 
--   :material-account-box:{ .lg .middle } __Coherent profiles__
+-   :material-account-box:{ .lg .middle } Coherent profiles
 
     ---
 
@@ -66,7 +66,7 @@ asyncio.run(main())
 
     [:octicons-arrow-right-24: Profiles](user-guide/profiles.md)
 
--   :material-database-sync:{ .lg .middle } __Persistent sessions__
+-   :material-database-sync:{ .lg .middle } Persistent sessions
 
     ---
 
@@ -74,7 +74,7 @@ asyncio.run(main())
 
     [:octicons-arrow-right-24: Sessions](user-guide/sessions.md)
 
--   :material-shield-lock:{ .lg .middle } __Stealth & routing__
+-   :material-shield-lock:{ .lg .middle } Stealth and routing
 
     ---
 
@@ -82,7 +82,7 @@ asyncio.run(main())
 
     [:octicons-arrow-right-24: Stealth](user-guide/stealth.md)
 
--   :material-console:{ .lg .middle } __CLI included__
+-   :material-console:{ .lg .middle } CLI included
 
     ---
 
@@ -90,7 +90,7 @@ asyncio.run(main())
 
     [:octicons-arrow-right-24: CLI](user-guide/cli.md)
 
--   :material-api:{ .lg .middle } __Typed API__
+-   :material-api:{ .lg .middle } Typed API
 
     ---
 

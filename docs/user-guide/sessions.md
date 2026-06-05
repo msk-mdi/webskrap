@@ -25,7 +25,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-## Persistent Storage
+## Persistent storage
 
 Set `user_data_dir` to keep cookies, local storage, and browser profile state between runs.
 
@@ -33,7 +33,7 @@ Set `user_data_dir` to keep cookies, local storage, and browser profile state be
 config = SessionConfig(user_data_dir=Path(".webskrap/profile"))
 ```
 
-## Human-like Clicks
+## Human-like clicks
 
 Sessions expose `human_click` for interactions that should behave more like a manual click
 than a direct Playwright `page.click`.
@@ -62,7 +62,7 @@ await session.human_click(page, "label[for='radio1']")
 await session.disable_cursor_hint(page)
 ```
 
-## Common Options
+## Common options
 
 ```python
 config = SessionConfig(

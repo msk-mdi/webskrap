@@ -19,7 +19,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-## One-Shot Fetch
+## One-shot fetch
 
 `client.fetch()` creates a temporary browser session, opens the page, collects the response data, then closes that temporary session.
 

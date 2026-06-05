@@ -20,7 +20,7 @@ pip install webskrap
 python -m playwright install chromium
 ```
 
-## Quick Start
+## Quickstart
 
 ```python
 import asyncio
@@ -39,7 +39,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-## Persistent Session
+## Persistent session
 
 ```python
 import asyncio
@@ -64,7 +64,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-## Headed Browser
+## Headed browser
 
 Use a persistent session when you want the browser to stay open.
 
@@ -92,7 +92,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-## Human-like Clicks
+## Human-like clicks
 
 Use `human_click` when a manual interaction should include visible-element waits, scrolling,
 short pauses, and mouse movement before the click.
@@ -156,7 +156,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-## Custom Profile
+## Custom profile
 
 ```python
 from webskrap import BrowserProfile, Viewport
@@ -170,7 +170,7 @@ profile = BrowserProfile(
 )
 ```
 
-## Session Options
+## Session options
 
 ```python
 from pathlib import Path
@@ -208,7 +208,7 @@ config = SessionConfig(
 - `ResourcePolicy.LITE`: block images, fonts, and media.
 - `ResourcePolicy.DOCUMENTS`: block images, fonts, media, and stylesheets.
 
-## Profile Options
+## Profile options
 
 ```python
 from webskrap import BrowserProfile, Viewport
@@ -230,12 +230,12 @@ profile = BrowserProfile(
 )
 ```
 
-## Patchright Stealth
+## Patchright stealth
 
 The default `playwright` driver is detectable by CDP-aware bot detectors because
 the DevTools Protocol `Runtime.enable` call leaks. For maximum stealth, switch to
-the [`patchright`](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright) driver — a
-CDP-leak-free Playwright fork — and let the browser's real fingerprint show through.
+the [`patchright`](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright) driver, a
+CDP-leak-free Playwright fork, and let the browser's real fingerprint show through.
 WebSkrap does not inject JavaScript stealth patches.
 
 ```bash
@@ -284,7 +284,7 @@ browser surfaces native instead of spoofing them with JavaScript, because broad
 fingerprint patches can look like tampering.
 
 Headless Chrome has no physical display, so it otherwise reports an 800x600
-screen with zero `outerWidth`/`outerHeight` — an obvious headless tell. For
+screen with zero `outerWidth`/`outerHeight`, an obvious headless tell. For
 chromium headless runs WebSkrap configures a virtual screen at launch
 (`--screen-info`, `--window-size`, `--window-position`), giving coherent
 `screen`/`window` metrics without JavaScript spoofing. It defaults to 1920x1080;
@@ -301,12 +301,12 @@ webskrap fetch https://example.com --headed --screenshot example.png
 webskrap fetch https://example.com --driver patchright --channel chrome --headed
 ```
 
-## Performance Benchmarks
+## Performance benchmarks
 
 WebSkrap is a browser-automation framework, so these benchmarks measure what it
 actually does: resource routing, session reuse, and concurrent fetching. They run
 against a local HTTP server that serves a synthetic page referencing many delayed
-sub-resources (images, stylesheets, media) — no external sites are contacted, so
+sub-resources (images, stylesheets, media). No external sites are contacted, so
 results are deterministic. Numbers below are from a single machine and will vary
 with hardware; run them yourself with `python benchmarks.py`.
 
@@ -328,12 +328,12 @@ stylesheets (`DOCUMENTS`) reaches ~42%.
 | Warm session reuse    |  215.74   |  1.0x   |
 | Cold launch per fetch |  411.68   |  1.91x  |
 
-Reusing a persistent session avoids per-fetch browser/context startup — roughly
+Reusing a persistent session avoids per-fetch browser/context startup, roughly
 2x faster than launching cold each time.
 
 ### Concurrency
 
-Fetching 8 pages per batch from one session averages **~109 ms per page**.
+Fetching 8 pages per batch from one session averages ~109 ms per page.
 
 > Benchmarks average 20+ navigations after warm-up. See
 > [benchmarks.py](benchmarks.py) for methodology.

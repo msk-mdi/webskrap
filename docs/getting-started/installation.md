@@ -19,7 +19,7 @@ webskrap doctor
 webskrap profiles
 ```
 
-## Development Install
+## Development install
 
 For local development:
 

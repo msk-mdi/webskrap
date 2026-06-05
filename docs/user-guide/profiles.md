@@ -2,7 +2,7 @@
 
 Profiles describe browser-visible settings such as viewport, locale, timezone, language headers, and device characteristics.
 
-## Built-In Profiles
+## Built-in profiles
 
 ```python
 from webskrap import get_profile, list_profiles
@@ -19,7 +19,7 @@ Built-in profile names:
 - `desktop-edge`
 - `mobile-chrome`
 
-## Custom Profile
+## Custom profile
 
 ```python
 from webskrap import BrowserProfile, Viewport

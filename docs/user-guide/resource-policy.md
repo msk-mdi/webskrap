@@ -1,4 +1,4 @@
-# Resource Policy
+# Resource policy
 
 Resource policies control which request types are allowed.
 

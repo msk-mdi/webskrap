@@ -32,7 +32,7 @@ Patchright works best with real Chrome and a persistent context. If
 `user_data_dir` is omitted, WebSkrap creates a temporary persistent profile for
 Patchright sessions.
 
-## Headless Patchright
+## Headless patchright
 
 Headless mode is more detectable than headed mode. For best-effort headless
 stealth, prefer real Chrome and a stable profile:
@@ -54,7 +54,7 @@ WebSkrap intentionally keeps headless browser surfaces native instead of spoofin
 them with JavaScript. Broad fingerprint patches often become tampering signals.
 
 Headless Chrome has no physical display, so screen and window metrics
-(`screen.width`, `window.outerWidth`, ...) otherwise leak as headless tells —
+(`screen.width`, `window.outerWidth`, ...) otherwise leak as headless tells,
 defaulting to an 800x600 screen with zero outer dimensions. For chromium headless
 runs WebSkrap configures a virtual screen at launch via browser flags
 (`--screen-info`, `--window-size`, `--window-position`), so the page reports
@@ -78,7 +78,7 @@ Chrome stamps `HeadlessChrome` into `navigator.userAgent` and the worker UA
 (including `SharedWorker`, which runs in its own process). Set
 `mask_headless_user_agent=True` to rewrite it to `Chrome`. WebSkrap probes the
 real UA once, then applies the cleaned value via the browser's own
-`--user-agent` override at launch — process-wide, covering the page, every
+`--user-agent` override at launch. The setting is process wide, covering the page, every
 worker, and request headers, with native client hints left intact. It is off by
 default so headless stays honestly headless unless you opt in.
 
@@ -96,7 +96,7 @@ With a simulated screen and a masked UA, a headless chromium run clears the live
 bot-detection suite (`tests/test_bot_detection.py`) that otherwise requires
 headed mode.
 
-## Practical Guidance
+## Practical guidance
 
 - Reuse persistent sessions when realistic continuity matters.
 - Keep locale, timezone, and languages coherent.

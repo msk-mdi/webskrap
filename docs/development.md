@@ -33,7 +33,7 @@ Build docs:
 mkdocs build --strict
 ```
 
-## Publishing Docs
+## Publishing docs
 
 Docs are deployed by GitHub Actions from `main`.
 

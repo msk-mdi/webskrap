@@ -2,31 +2,31 @@
 
 WebSkrap installs the `webskrap` command.
 
-## Check Environment
+## Check environment
 
 ```bash
 webskrap doctor
 ```
 
-## List Profiles
+## List profiles
 
 ```bash
 webskrap profiles
 ```
 
-## Fetch A Page
+## Fetch a page
 
 ```bash
 webskrap fetch https://example.com
 ```
 
-## Headed Browser
+## Headed browser
 
 ```bash
 webskrap fetch https://example.com --headed
 ```
 
-## Patchright Driver
+## Patchright driver
 
 ```bash
 webskrap fetch https://example.com --driver patchright --channel chrome --headed
