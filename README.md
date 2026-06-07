@@ -291,6 +291,29 @@ chromium headless runs WebSkrap configures a virtual screen at launch
 override with `headless_screen=Viewport(width=..., height=...)` or disable with
 `headless_screen=None`.
 
+For fingerprint-statistics pages such as AmiUnique, opt in to Patchright context
+profile metadata when you want profile locale/timezone/media settings applied
+through native browser context options. This keeps `no_viewport=True` and avoids
+JavaScript patches:
+
+```python
+config = SessionConfig(
+    driver="patchright",
+    channel="chrome",
+    headless=True,
+    mask_headless_user_agent=True,
+    patchright_context_profile=True,
+    reduce_fingerprint_surface=True,
+    webrtc_ip_handling_policy="disable_non_proxied_udp",
+)
+```
+
+The WebRTC policy prevents local or direct public ICE candidates from leaking to
+WebRTC leak-test pages. It does not normalize unrelated high-entropy surfaces
+such as fonts, canvas, battery, device memory, or TLS/session metadata.
+`reduce_fingerprint_surface=True` reduces rendering entropy with native Chromium
+flags, but pages that need WebGL or canvas export may not work correctly.
+
 ## CLI
 
 ```bash
@@ -299,7 +322,15 @@ webskrap doctor
 webskrap fetch https://example.com --profile desktop-chrome
 webskrap fetch https://example.com --headed --screenshot example.png
 webskrap fetch https://example.com --driver patchright --channel chrome --headed
+webskrap fetch https://amiunique.org/fr/fingerprint \
+  --driver patchright \
+  --channel chrome \
+  --patchright-context-profile \
+  --reduce-fingerprint-surface \
+  --webrtc-ip-handling-policy disable_non_proxied_udp
 ```
+
+Use repeated `--launch-arg=...` options for advanced browser flags.
 
 ## Performance benchmarks
 

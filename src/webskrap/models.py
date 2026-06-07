@@ -6,6 +6,13 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+WebRtcIPHandlingPolicy = Literal[
+    "default",
+    "default_public_and_private_interfaces",
+    "default_public_interface_only",
+    "disable_non_proxied_udp",
+]
+
 
 class ResourcePolicy(StrEnum):
     ALL = "all"
@@ -161,6 +168,22 @@ class SessionConfig(BaseModel):
     # override (covering workers and client hints) — not JavaScript spoofing.
     # Off by default so headless stays honestly headless unless opted in.
     mask_headless_user_agent: bool = False
+    # Native Chromium rendering reduction. When enabled, canvas readback and
+    # WebGL are disabled through browser flags. This avoids high-entropy
+    # rendering fingerprints without JavaScript monkeypatching, but can break
+    # pages that require canvas exports or WebGL.
+    reduce_fingerprint_surface: bool = False
+    # Chromium WebRTC IP handling policy. Use "disable_non_proxied_udp" to
+    # prevent non-proxied UDP ICE candidates, which avoids WebRTC exposing local
+    # or direct public IP candidates on leak-test pages without patching the
+    # RTCPeerConnection API.
+    webrtc_ip_handling_policy: WebRtcIPHandlingPolicy | None = None
+    # Patchright is strongest when it exposes the browser's native surfaces, so
+    # profile settings are ignored by default. This opt-in applies only browser
+    # context metadata that Chrome can own natively (locale, timezone, color
+    # scheme, reduced motion, and caller-provided extra headers) while still
+    # avoiding viewport, user-agent, and JavaScript fingerprint patches.
+    patchright_context_profile: bool = False
 
     def launch_options(self) -> dict[str, Any]:
         options: dict[str, Any] = {
@@ -171,7 +194,13 @@ class SessionConfig(BaseModel):
             options["channel"] = self.channel
         if self.slow_mo_ms is not None:
             options["slow_mo"] = self.slow_mo_ms
-        args = self._automation_args() + self._screen_args() + list(self.launch_args)
+        args = (
+            self._automation_args()
+            + self._screen_args()
+            + self._reduced_fingerprint_surface_args()
+            + self._webrtc_ip_handling_args()
+            + list(self.launch_args)
+        )
         if args:
             options["args"] = args
         return options
@@ -208,13 +237,54 @@ class SessionConfig(BaseModel):
             if not any(a.startswith(prefix) for a in self.launch_args)
         ]
 
+    def _webrtc_ip_handling_args(self) -> list[str]:
+        # Chromium requires the policy value and an explicit force flag for the
+        # process-level WebRTC IP handling override to apply in Chrome.
+        if self.browser != "chromium" or self.webrtc_ip_handling_policy is None:
+            return []
+        candidates = {
+            "--webrtc-ip-handling-policy": (
+                f"--webrtc-ip-handling-policy={self.webrtc_ip_handling_policy}"
+            ),
+            "--force-webrtc-ip-handling-policy": "--force-webrtc-ip-handling-policy",
+        }
+        return [
+            arg
+            for prefix, arg in candidates.items()
+            if not any(a == prefix or a.startswith(f"{prefix}=") for a in self.launch_args)
+        ]
+
+    def _reduced_fingerprint_surface_args(self) -> list[str]:
+        if self.browser != "chromium" or not self.reduce_fingerprint_surface:
+            return []
+        candidates = {
+            "--disable-webgl": "--disable-webgl",
+            "--disable-reading-from-canvas": "--disable-reading-from-canvas",
+        }
+        return [
+            arg
+            for prefix, arg in candidates.items()
+            if not any(a == prefix or a.startswith(f"{prefix}=") for a in self.launch_args)
+        ]
+
     def context_options(self, profile: BrowserProfile) -> dict[str, Any]:
         if self.driver == "patchright":
             # patchright defeats CDP-aware detectors by presenting the browser's
-            # real fingerprint. Injecting a synthetic viewport, locale, timezone,
-            # or Accept-Language header reintroduces behavioral bot signals, so we
-            # let the real environment show through instead of the profile.
+            # real fingerprint. The default keeps the host/browser environment
+            # visible. The opt-in context profile below only applies settings
+            # Chrome can expose natively through BrowserContext options.
             options: dict[str, Any] = {"no_viewport": True}
+            if self.patchright_context_profile:
+                options.update(
+                    {
+                        "locale": profile.locale,
+                        "timezone_id": profile.timezone_id,
+                        "color_scheme": profile.color_scheme,
+                        "reduced_motion": profile.reduced_motion,
+                    }
+                )
+                if profile.extra_http_headers:
+                    options["extra_http_headers"] = dict(profile.extra_http_headers)
         else:
             options = profile.to_context_options()
         options.update(

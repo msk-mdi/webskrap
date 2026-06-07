@@ -32,6 +32,54 @@ Patchright works best with real Chrome and a persistent context. If
 `user_data_dir` is omitted, WebSkrap creates a temporary persistent profile for
 Patchright sessions.
 
+## Context profile mode
+
+Patchright defaults to the host browser's native locale, timezone, headers, and
+media preferences. This is the strict anti-bot mode because fewer context
+overrides means fewer behavioral mismatches.
+
+Fingerprint-statistics pages such as AmiUnique also score how common each
+browser-visible attribute is. For those cases, you can opt in to applying the
+selected profile's context metadata while still avoiding viewport, user-agent,
+and JavaScript fingerprint patches. This can align language, timezone, and media
+metadata, but it does not make high-entropy fingerprints non-unique by itself:
+
+```python
+from webskrap import SessionConfig
+
+config = SessionConfig(
+    driver="patchright",
+    channel="chrome",
+    headless=True,
+    mask_headless_user_agent=True,
+    patchright_context_profile=True,
+    reduce_fingerprint_surface=True,
+    webrtc_ip_handling_policy="disable_non_proxied_udp",
+)
+```
+
+This applies `locale`, `timezone_id`, `color_scheme`, `reduced_motion`, and any
+caller-provided `extra_http_headers`. It keeps `no_viewport=True`, so screen and
+window metrics still come from the browser or from `headless_screen`.
+
+Set `webrtc_ip_handling_policy="disable_non_proxied_udp"` when leak-test pages
+should not see local or direct public WebRTC ICE candidates. WebSkrap applies
+Chromium's native process flags (`--webrtc-ip-handling-policy` plus
+`--force-webrtc-ip-handling-policy`) instead of patching `RTCPeerConnection`.
+The supported policy values are `default`,
+`default_public_and_private_interfaces`, `default_public_interface_only`, and
+`disable_non_proxied_udp`.
+
+WebRTC IP handling only controls ICE candidates. It will not hide the page's
+normal remote address, and it will not normalize unrelated fingerprint surfaces
+such as fonts, canvas, battery, device memory, or TLS/session metadata.
+
+Set `reduce_fingerprint_surface=True` to ask Chromium to disable WebGL and
+canvas readback with native flags (`--disable-webgl` and
+`--disable-reading-from-canvas`). This reduces rendering entropy on
+fingerprint-statistics pages, but pages that require WebGL or canvas export may
+not work correctly.
+
 ## Headless patchright
 
 Headless mode is more detectable than headed mode. For best-effort headless

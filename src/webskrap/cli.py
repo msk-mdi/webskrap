@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.table import Table
 
 from webskrap.client import WaitUntil, WebSkrapClient
-from webskrap.models import ResourcePolicy, SessionConfig
+from webskrap.models import ResourcePolicy, SessionConfig, WebRtcIPHandlingPolicy
 from webskrap.profiles import get_profile, list_profiles
 
 app = typer.Typer(help="WebSkrap browser scraping toolkit.")
@@ -101,6 +101,37 @@ def fetch_command(
         ResourcePolicy,
         typer.Option("--resource-policy", help="Resource routing preset."),
     ] = ResourcePolicy.ALL,
+    patchright_context_profile: Annotated[
+        bool,
+        typer.Option(
+            "--patchright-context-profile",
+            help="Apply locale/timezone/media profile metadata in Patchright contexts.",
+        ),
+    ] = False,
+    reduce_fingerprint_surface: Annotated[
+        bool,
+        typer.Option(
+            "--reduce-fingerprint-surface",
+            help="Disable Chromium WebGL and canvas readback with native browser flags.",
+        ),
+    ] = False,
+    launch_args: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--launch-arg",
+            help="Additional browser launch argument. Repeat for multiple args.",
+        ),
+    ] = None,
+    webrtc_ip_handling_policy: Annotated[
+        str | None,
+        typer.Option(
+            "--webrtc-ip-handling-policy",
+            help=(
+                "Chromium WebRTC IP policy: default, default_public_and_private_interfaces, "
+                "default_public_interface_only, or disable_non_proxied_udp."
+            ),
+        ),
+    ] = None,
 ) -> None:
     asyncio.run(
         _fetch(
@@ -114,6 +145,10 @@ def fetch_command(
             wait_until=wait_until,
             timeout_ms=timeout_ms,
             resource_policy=resource_policy,
+            patchright_context_profile=patchright_context_profile,
+            reduce_fingerprint_surface=reduce_fingerprint_surface,
+            launch_args=launch_args or [],
+            webrtc_ip_handling_policy=webrtc_ip_handling_policy,
         )
     )
 
@@ -130,6 +165,10 @@ async def _fetch(
     wait_until: str,
     timeout_ms: float,
     resource_policy: ResourcePolicy,
+    patchright_context_profile: bool,
+    reduce_fingerprint_surface: bool,
+    launch_args: list[str],
+    webrtc_ip_handling_policy: str | None,
 ) -> None:
     selected_profile = get_profile(profile)
     config = SessionConfig(
@@ -138,6 +177,10 @@ async def _fetch(
         channel=channel,
         navigation_timeout_ms=timeout_ms,
         resource_policy=resource_policy,
+        patchright_context_profile=patchright_context_profile,
+        reduce_fingerprint_surface=reduce_fingerprint_surface,
+        launch_args=launch_args,
+        webrtc_ip_handling_policy=_parse_webrtc_ip_handling_policy(webrtc_ip_handling_policy),
     )
 
     async with WebSkrapClient() as client:
@@ -177,3 +220,20 @@ def _parse_driver(value: str) -> Driver:
         allowed = ", ".join(valid)
         raise typer.BadParameter(f"must be one of: {allowed}")
     return cast(Driver, value)
+
+
+def _parse_webrtc_ip_handling_policy(
+    value: str | None,
+) -> WebRtcIPHandlingPolicy | None:
+    if value is None:
+        return None
+    valid = (
+        "default",
+        "default_public_and_private_interfaces",
+        "default_public_interface_only",
+        "disable_non_proxied_udp",
+    )
+    if value not in valid:
+        allowed = ", ".join(valid)
+        raise typer.BadParameter(f"must be one of: {allowed}")
+    return cast(WebRtcIPHandlingPolicy, value)

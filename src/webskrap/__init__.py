@@ -6,6 +6,7 @@ from webskrap.models import (
     ResourcePolicy,
     SessionConfig,
     Viewport,
+    WebRtcIPHandlingPolicy,
 )
 from webskrap.profiles import get_profile, list_profiles
 
@@ -16,6 +17,7 @@ __all__ = [
     "ResourcePolicy",
     "SessionConfig",
     "Viewport",
+    "WebRtcIPHandlingPolicy",
     "WebSkrapClient",
     "WebSkrapError",
     "WebSkrapSession",
