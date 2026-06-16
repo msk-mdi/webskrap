@@ -22,6 +22,7 @@ nav = [
     { "Stealth" = "user-guide/stealth.md" },
     { "Resource Policy" = "user-guide/resource-policy.md" },
     { "CLI" = "user-guide/cli.md" },
+    { "MCP server" = "user-guide/mcp.md" },
   ] },
   { "API Reference" = "api-reference.md" },
   { "Development" = "development.md" },

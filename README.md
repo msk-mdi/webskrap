@@ -332,6 +332,33 @@ webskrap fetch https://amiunique.org/fr/fingerprint \
 
 Use repeated `--launch-arg=...` options for advanced browser flags.
 
+## MCP server
+
+WebSkrap ships an optional Model Context Protocol server so MCP clients (Claude
+Desktop, Claude Code, ...) can drive scraping directly. It exposes three tools
+over stdio: `fetch`, `stealth_fetch`, and `doctor`.
+
+```bash
+pip install "webskrap[mcp]"
+python -m playwright install chromium
+webskrap-mcp
+```
+
+Register it with a client. Example Claude Desktop config:
+
+```json
+{
+  "mcpServers": {
+    "webskrap": {
+      "command": "webskrap-mcp"
+    }
+  }
+}
+```
+
+`stealth_fetch` also needs the `stealth` extra (`pip install "webskrap[mcp,stealth]"`
+and `patchright install chromium`).
+
 ## Performance benchmarks
 
 WebSkrap is a browser-automation framework, so these benchmarks measure what it

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "webskrap"
-version = "0.4.3"
+version = "0.4.4"
 description = "A Playwright-based Python scraping framework with coherent browser profiles and session controls."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -44,9 +44,13 @@ docs = [
 stealth = [
     "patchright>=1.60.0",
 ]
+mcp = [
+    "mcp>=1.2",
+]
 
 [project.scripts]
 webskrap = "webskrap.cli:app"
+webskrap-mcp = "webskrap.mcp_server:main"
 
 [project.urls]
 Homepage = "https://github.com/kacigaya/webskrap"
