@@ -6,14 +6,21 @@ hide:
 
 <div class="ws-hero" markdown>
 
+<img class="ws-logo" src="assets/webskrap-logo.png" alt="WebSkrap logo">
+
 # WebSkrap
 
-<p class="ws-tagline">Async-first Python scraping framework built on Playwright, with coherent browser profiles, persistent sessions, resource routing, and Patchright support for workflows that need realistic browser behavior.</p>
+<p class="ws-tagline">Async-first Python scraping on Playwright. Coherent profiles, persistent sessions, and resource routing.</p>
 
 <div class="ws-cta" markdown>
 [Get started](getting-started/installation.md){ .md-button .md-button--primary }
 [Quickstart](getting-started/quickstart.md){ .md-button }
 [View on GitHub](https://github.com/kacigaya/webskrap){ .md-button }
+</div>
+
+<div class="ws-terminal">
+  <span class="ws-terminal__dots"><i></i><i></i><i></i></span>
+  <code class="ws-terminal__cmd"><span class="ws-prompt">$</span> pip install webskrap<span class="ws-caret"></span></code>
 </div>
 
 </div>

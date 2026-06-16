@@ -1,119 +1,263 @@
-/* ── WebSkrap theme polish ──────────────────────────────────────────── */
+/* ── WebSkrap × Cirrus ──────────────────────────────────────────────────
+   Cirrus: open-sky backdrop, white pill-radius surfaces, hairline borders,
+   ultra-soft shadows, tight geometric sans broken once by an italic serif,
+   obsidian-black pill CTAs, tri-color accent (sky / citrus / meadow).
+   Pill button derived from uiverse "short-lion-13" (MIT).
+   ──────────────────────────────────────────────────────────────────────── */
+
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --md-primary-fg-color:        #06b6d4;
-  --md-primary-fg-color--light: #22d3ee;
-  --md-primary-fg-color--dark:  #0891b2;
-  --md-accent-fg-color:         #3b82f6;
+  --ink:          #0e1116;
+  --ink-soft:     #3a4350;
+  --cloud:        #ffffff;
+  --sky:          #2e7def;   /* accent · sky blue   */
+  --citrus:       #f59e0b;   /* accent · citrus     */
+  --meadow:       #22a06b;   /* accent · meadow     */
+  --hairline:     rgba(14, 17, 22, 0.10);
+  --soft-shadow:  0 1px 1px rgba(14, 17, 22, 0.05), 0 18px 40px -28px rgba(14, 17, 22, 0.35);
+
+  --ws-sans:  "Outfit", system-ui, -apple-system, sans-serif;
+
+  --md-primary-fg-color:        var(--sky);
+  --md-primary-fg-color--light: #5b9bf5;
+  --md-primary-fg-color--dark:  #1f63c9;
+  --md-accent-fg-color:         var(--sky);
 }
 
-/* Light scheme tuning */
+/* ── Light scheme = Cirrus daylight ─────────────────────────────────── */
 [data-md-color-scheme="default"] {
-  --md-default-bg-color: #ffffff;
-  --md-typeset-a-color: #0e7490;
+  --md-default-bg-color:        #f7fbff;
+  --md-default-fg-color:        var(--ink);
+  --md-default-fg-color--light: var(--ink-soft);
+  --md-typeset-a-color:         var(--sky);
+  --md-code-bg-color:           #ffffff;
+  --md-code-fg-color:           #1a2230;
+  --hairline:                   rgba(14, 17, 22, 0.10);
 }
-
-/* Dark scheme: deep slate with a subtle cyan-tinted gradient backdrop */
-[data-md-color-scheme="slate"] {
-  --md-hue: 210;
-  --md-default-bg-color:        #0b1120;
-  --md-default-fg-color:        #e2e8f0;
-  --md-default-fg-color--light: #cbd5e1;
-  --md-code-bg-color:           #111827;
-  --md-code-fg-color:           #e5e7eb;
-  --md-typeset-a-color:         #38bdf8;
-  --md-footer-bg-color:         #0a0f1c;
-  --md-footer-bg-color--dark:   #070b15;
-}
-
-[data-md-color-scheme="slate"] body {
+[data-md-color-scheme="default"] body {
   background:
-    radial-gradient(1200px 600px at 100% -10%, rgba(34, 211, 238, 0.10), transparent 60%),
-    radial-gradient(900px 500px at -10% 10%, rgba(59, 130, 246, 0.10), transparent 55%),
-    var(--md-default-bg-color);
+    radial-gradient(1100px 520px at 78% -8%, rgba(46, 125, 239, 0.14), transparent 60%),
+    radial-gradient(900px 460px at 12% 4%, rgba(255, 255, 255, 0.9), transparent 55%),
+    radial-gradient(700px 420px at 50% 120%, rgba(34, 160, 107, 0.07), transparent 60%),
+    linear-gradient(180deg, #eaf3ff 0%, #f7fbff 38%, #ffffff 100%);
   background-attachment: fixed;
 }
 
-/* Header: gradient bar instead of flat fill */
-.md-header {
-  background: linear-gradient(90deg, var(--md-primary-fg-color--dark), var(--md-accent-fg-color));
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+/* ── Dark scheme = Cirrus nightfall ─────────────────────────────────── */
+[data-md-color-scheme="slate"] {
+  --md-hue: 222;
+  --ink:                        #e8eef7;
+  --ink-soft:                   #aeb9c9;
+  --cloud:                      #141b27;
+  --hairline:                   rgba(255, 255, 255, 0.10);
+  --soft-shadow:                0 1px 1px rgba(0, 0, 0, 0.3), 0 22px 48px -28px rgba(0, 0, 0, 0.7);
+  --md-default-bg-color:        #0a1018;
+  --md-default-fg-color:        #e8eef7;
+  --md-default-fg-color--light: #aeb9c9;
+  --md-code-bg-color:           #141b27;
+  --md-code-fg-color:           #e5ecf6;
+  --md-typeset-a-color:         #5b9bf5;
+  --md-footer-bg-color:         #070b12;
 }
-.md-tabs {
-  background: transparent;
+[data-md-color-scheme="slate"] body {
+  background:
+    radial-gradient(1100px 560px at 78% -10%, rgba(46, 125, 239, 0.18), transparent 60%),
+    radial-gradient(820px 480px at 12% 2%, rgba(91, 155, 245, 0.10), transparent 55%),
+    linear-gradient(180deg, #0d1726 0%, #0a1018 52%);
+  background-attachment: fixed;
 }
 
-/* Logo crisp + slight breathing room */
-.md-header__button.md-logo img {
-  height: 1.6rem;
-  width: auto;
+/* ── Typography ─────────────────────────────────────────────────────── */
+body, .md-typeset {
+  font-family: var(--ws-sans);
+  letter-spacing: -0.011em;
 }
+.md-typeset h1, .md-typeset h2, .md-typeset h3,
+.md-header__title, .md-tabs__link {
+  font-family: var(--ws-sans);
+  letter-spacing: -0.022em;
+}
+
+/* ── Header: frosted cloud bar, not a colored slab ──────────────────── */
+.md-header {
+  background: color-mix(in srgb, var(--md-default-bg-color) 80%, transparent);
+  -webkit-backdrop-filter: saturate(140%) blur(12px);
+  backdrop-filter: saturate(140%) blur(12px);
+  color: var(--ink);
+  border-bottom: 1px solid var(--hairline);
+  box-shadow: none;
+}
+.md-header__title, .md-header__button, .md-tabs__link { color: var(--ink); }
+.md-tabs { background: transparent; color: var(--ink); border-bottom: 1px solid var(--hairline); }
+.md-tabs__link { opacity: 0.72; }
+.md-tabs__link--active, .md-tabs__link:hover { opacity: 1; color: var(--sky); }
+.md-header__button.md-logo img { height: 1.55rem; width: auto; }
 
 /* ── Hero ───────────────────────────────────────────────────────────── */
 .ws-hero {
+  position: relative;
   text-align: center;
-  padding: 3.2rem 1rem 2.4rem;
+  padding: 4.5rem 1rem 3rem;
 }
+
+.ws-logo {
+  display: block;
+  width: clamp(72px, 12vw, 104px);
+  height: auto;
+  margin: 0 auto 1.4rem;
+  filter: drop-shadow(0 14px 30px rgba(46, 125, 239, 0.28));
+  opacity: 0;
+  animation: ws-rise 0.6s ease 0.02s forwards;
+}
+
 .ws-hero h1 {
-  font-size: 2.9rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin: 0 0 0.4rem;
-  background: linear-gradient(92deg, var(--md-primary-fg-color--light), var(--md-accent-fg-color));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-family: var(--ws-sans);
+  font-size: clamp(2.8rem, 6.4vw, 4.6rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+  margin: 0 0 0.9rem;
+  color: var(--ink);
+  opacity: 0;
+  animation: ws-rise 0.6s ease 0.12s forwards;
 }
+
+/* the single italic-serif "breath" */
 .ws-hero p.ws-tagline {
-  font-size: 1.15rem;
-  color: var(--md-default-fg-color--light);
+  font-size: 1.2rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
   max-width: 40rem;
-  margin: 0 auto 1.6rem;
+  margin: 0 auto 2rem;
+  opacity: 0;
+  animation: ws-rise 0.6s ease 0.2s forwards;
 }
 .ws-cta {
   display: inline-flex;
   gap: 0.8rem;
   flex-wrap: wrap;
   justify-content: center;
+  opacity: 0;
+  animation: ws-rise 0.6s ease 0.28s forwards;
 }
-.ws-cta .md-button {
-  border-radius: 0.6rem;
+
+/* ── Cirrus pill button (uiverse short-lion-13, MIT) ─────────────────── */
+.md-typeset .md-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--cloud);
+  color: var(--ink);
+  font-family: var(--ws-sans);
+  font-size: 15px;
   font-weight: 600;
+  line-height: 1;
+  box-shadow: var(--soft-shadow);
+  transition:
+    transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+.md-typeset .md-button:hover { transform: translateY(-1px); border-color: var(--sky); }
+.md-typeset .md-button:active { transform: translateY(1px); }
 
-/* ── Feature grid cards ─────────────────────────────────────────────── */
-.md-typeset .grid.cards > ul > li,
-.md-typeset .grid > .card {
-  border-radius: 0.8rem;
-  border: 1px solid var(--md-default-fg-color--lightest);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-}
-.md-typeset .grid.cards > ul > li:hover {
-  transform: translateY(-3px);
-  border-color: var(--md-accent-fg-color);
-  box-shadow: 0 10px 28px rgba(8, 145, 178, 0.18);
-}
-
-/* ── Code blocks ────────────────────────────────────────────────────── */
-.md-typeset pre > code {
-  border-radius: 0.6rem;
-}
-[data-md-color-scheme="slate"] .md-typeset pre > code {
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12);
-}
-
-/* ── Buttons ────────────────────────────────────────────────────────── */
 .md-typeset .md-button--primary {
-  background: linear-gradient(92deg, var(--md-primary-fg-color), var(--md-accent-fg-color));
-  border: none;
-  color: #fff;
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--cloud);
+}
+.md-typeset .md-button--primary::after {
+  content: "↗";
+  font-size: 0.95em;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .md-typeset .md-button--primary:hover {
-  filter: brightness(1.07);
-  box-shadow: 0 6px 18px rgba(8, 145, 178, 0.35);
+  background: #1a1f28;
+  border-color: #1a1f28;
+  box-shadow: 0 1px 1px rgba(14, 17, 22, 0.08), 0 22px 38px -16px rgba(14, 17, 22, 0.5);
+}
+.md-typeset .md-button--primary:hover::after { transform: translate(2px, -2px); }
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary {
+  background: var(--cloud); border-color: var(--hairline); color: var(--ink);
 }
 
-/* Smooth color-scheme transition */
-[data-md-color-scheme] {
-  transition: background-color 0.3s ease, color 0.3s ease;
+/* ── Install chip: clean white code pill ────────────────────────────── */
+.ws-terminal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 2rem auto 0;
+  padding: 0.55rem 1.1rem 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--cloud);
+  box-shadow: var(--soft-shadow);
+  opacity: 0;
+  animation: ws-rise 0.6s ease 0.36s forwards;
 }
+.ws-terminal__dots { display: inline-flex; gap: 0.32rem; }
+.ws-terminal__dots i { width: 0.56rem; height: 0.56rem; border-radius: 50%; }
+.ws-terminal__dots i:nth-child(1) { background: #ff6058; }
+.ws-terminal__dots i:nth-child(2) { background: var(--citrus); }
+.ws-terminal__dots i:nth-child(3) { background: var(--meadow); }
+.ws-terminal__cmd {
+  font-family: var(--md-code-font, monospace);
+  font-size: 0.85rem;
+  color: var(--md-code-fg-color);
+  background: none;
+  padding: 0;
+  white-space: nowrap;
+}
+.ws-prompt { color: var(--sky); margin-right: 0.45rem; user-select: none; }
+.ws-caret {
+  display: inline-block;
+  width: 0.5rem; height: 1.05em;
+  margin-left: 0.15rem;
+  vertical-align: text-bottom;
+  background: var(--sky);
+  animation: ws-blink 1.05s steps(1) infinite;
+}
+
+@keyframes ws-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ws-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .ws-hero h1, .ws-hero p.ws-tagline,
+  .ws-cta, .ws-terminal { opacity: 1; animation: none; }
+  .ws-caret { animation: none; }
+}
+
+/* ── Feature cards = floating cloud surfaces ────────────────────────── */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid > .card {
+  border-radius: 18px;
+  border: 1px solid var(--hairline);
+  background: var(--cloud);
+  box-shadow: var(--soft-shadow);
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--sky) 45%, var(--hairline));
+  box-shadow: 0 1px 1px rgba(14,17,22,0.06), 0 30px 56px -30px rgba(46, 125, 239, 0.5);
+}
+.md-typeset .grid.cards .lg.middle { color: var(--sky); }
+.md-typeset .grid.cards > ul > li:nth-child(3n+2) .lg.middle { color: var(--citrus); }
+.md-typeset .grid.cards > ul > li:nth-child(3n+3) .lg.middle { color: var(--meadow); }
+
+/* ── Code blocks: crisp pill-radius surface ─────────────────────────── */
+.md-typeset pre > code { border-radius: 14px; }
+.md-typeset pre > code, .md-typeset .highlight { box-shadow: var(--soft-shadow); }
+
+/* ── Admonition: soft cloud card ────────────────────────────────────── */
+.md-typeset .admonition, .md-typeset details {
+  border-radius: 16px;
+  border: 1px solid var(--hairline);
+  box-shadow: var(--soft-shadow);
+}
+
+[data-md-color-scheme] { transition: background-color 0.3s ease, color 0.3s ease; }
