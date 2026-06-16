@@ -20,7 +20,16 @@ hide:
 
 <div class="ws-terminal">
   <span class="ws-terminal__dots"><i></i><i></i><i></i></span>
-  <code class="ws-terminal__cmd"><span class="ws-prompt">$</span> pip install webskrap<span class="ws-caret"></span></code>
+  <code class="ws-terminal__cmd"><span class="ws-prompt">$</span> pip install webskrap</code>
+  <button type="button" class="ws-copy" data-ws-copy="pip install webskrap" aria-label="Copy install command">
+    <svg class="ws-copy__icon ws-copy__copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+    <svg class="ws-copy__icon ws-copy__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5"></path>
+    </svg>
+  </button>
 </div>
 
 </div>
