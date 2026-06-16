@@ -37,7 +37,13 @@ page HTML in `text` (capped by `max_chars`, with `text_length` and
 
 ## Register with a client
 
-Example Claude Desktop configuration:
+### Claude Code
+
+```bash
+claude mcp add webskrap -- webskrap-mcp
+```
+
+### Claude Desktop
 
 ```json
 {
@@ -47,6 +53,16 @@ Example Claude Desktop configuration:
     }
   }
 }
+```
+
+### Codex
+
+Add a server entry to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.webskrap]
+command = "webskrap-mcp"
+args = []
 ```
 
 ## Stealth

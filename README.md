@@ -344,7 +344,15 @@ python -m playwright install chromium
 webskrap-mcp
 ```
 
-Register it with a client. Example Claude Desktop config:
+Register it with a client.
+
+Claude Code:
+
+```bash
+claude mcp add webskrap -- webskrap-mcp
+```
+
+Claude Desktop (`claude_desktop_config.json`):
 
 ```json
 {
@@ -354,6 +362,14 @@ Register it with a client. Example Claude Desktop config:
     }
   }
 }
+```
+
+Codex (`~/.codex/config.toml`):
+
+```toml
+[mcp_servers.webskrap]
+command = "webskrap-mcp"
+args = []
 ```
 
 `stealth_fetch` also needs the `stealth` extra (`pip install "webskrap[mcp,stealth]"`
