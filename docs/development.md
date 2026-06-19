@@ -21,16 +21,31 @@ pytest -q
 ruff check .
 ```
 
-Preview docs locally:
-
-```bash
-mkdocs serve
-```
-
 Build docs:
 
 ```bash
-mkdocs build --strict
+zensical build
+```
+
+Use the opt-in live tests only when you need to verify third-party bot-detection
+behavior:
+
+```bash
+WEBSKRAP_LIVE=1 pytest -q -m live
+```
+
+They require network access, Patchright, an installed browser, and public demo
+sites that can change independently from WebSkrap.
+
+## With uv
+
+The repository includes `uv.lock`, so you can run the same commands through
+`uv` without activating a shell environment:
+
+```bash
+uv run pytest -q
+uv run ruff check .
+uv run zensical build
 ```
 
 ## Publishing docs

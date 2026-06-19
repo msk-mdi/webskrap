@@ -25,12 +25,66 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
+Calling `client.session()` again with the same name returns the existing open
+session:
+
+```python
+session = await client.session("default")
+same_session = await client.session("default")
+assert session is same_session
+```
+
+Close individual sessions when you are done with them, or let
+`WebSkrapClient.close()` close all sessions:
+
+```python
+await session.close()
+```
+
 ## Persistent storage
 
 Set `user_data_dir` to keep cookies, local storage, and browser profile state between runs.
 
 ```python
 config = SessionConfig(user_data_dir=Path(".webskrap/profile"))
+```
+
+Use `storage_state` for a Playwright-style cookie/local-storage snapshot when
+you do not need a full persistent browser profile:
+
+```python
+config = SessionConfig(storage_state="state.json")
+```
+
+`storage_state` is applied only for non-persistent contexts. If
+`user_data_dir` is set, the persistent profile directory owns browser state.
+
+## Headed debugging
+
+Set `headless=False` and keep a page open when you need to inspect behavior:
+
+```python
+import asyncio
+from pathlib import Path
+
+from webskrap import SessionConfig, WebSkrapClient
+
+
+async def main() -> None:
+    config = SessionConfig(
+        headless=False,
+        user_data_dir=Path(".webskrap/debug"),
+        slow_mo_ms=50,
+    )
+
+    async with WebSkrapClient() as client:
+        session = await client.session("debug", config=config)
+        page = await session.context.new_page()
+        await page.goto("https://example.com", wait_until="domcontentloaded")
+        input("Press Enter to close browser...")
+
+
+asyncio.run(main())
 ```
 
 ## Human-like clicks
@@ -50,6 +104,19 @@ Pass `human=False` to use the same helper while delegating directly to Playwrigh
 
 ```python
 await session.human_click(page, "label[for='radio1']", human=False, timeout=5_000)
+```
+
+Pass normal click options such as `button`, `click_count`, `delay`, `modifiers`,
+`position`, `strict`, and `trial`:
+
+```python
+await session.human_click(
+    page,
+    "button[type='submit']",
+    strict=True,
+    timeout=10_000,
+    modifiers=["Shift"],
+)
 ```
 
 Enable the cursor hint in a headed browser to show a red dot at the automated mouse
@@ -79,3 +146,20 @@ config = SessionConfig(
     ],
 )
 ```
+
+## Proxy example
+
+```python
+from webskrap import ProxyConfig, SessionConfig
+
+config = SessionConfig(
+    proxy=ProxyConfig(
+        server="http://127.0.0.1:8080",
+        username="user",
+        password="pass",
+    ),
+)
+```
+
+Do not commit proxy credentials, cookies, storage-state files, or persistent
+session directories.

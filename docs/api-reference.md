@@ -12,6 +12,8 @@
 
 ::: webskrap.ResourcePolicy
 
+::: webskrap.WebRtcIPHandlingPolicy
+
 ::: webskrap.Viewport
 
 ::: webskrap.FetchResult

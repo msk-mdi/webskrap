@@ -35,6 +35,46 @@ Both fetch tools return `status`, `final_url`, `title`, `ok`, `headers`, and the
 page HTML in `text` (capped by `max_chars`, with `text_length` and
 `text_truncated` reporting the full size).
 
+## Tool arguments
+
+`fetch` accepts:
+
+| Argument | Default | Notes |
+| --- | --- | --- |
+| `url` | required | URL to load. |
+| `profile` | `desktop-chrome` | Bundled profile name. |
+| `wait_until` | `domcontentloaded` | `commit`, `domcontentloaded`, `load`, or `networkidle`. |
+| `resource_policy` | `all` | `all`, `lite`, or `documents`. |
+| `timeout_ms` | `30000` | Navigation timeout. |
+| `max_chars` | `20000` | Maximum returned HTML characters. |
+
+Example arguments:
+
+```json
+{
+  "url": "https://example.com",
+  "profile": "desktop-chrome",
+  "resource_policy": "lite",
+  "wait_until": "load",
+  "max_chars": 5000
+}
+```
+
+`stealth_fetch` accepts the same URL/profile/timeout/output-size controls plus
+Patchright options:
+
+```json
+{
+  "url": "https://example.com",
+  "channel": "chrome",
+  "headless": false,
+  "patchright_context_profile": false,
+  "reduce_fingerprint_surface": false,
+  "mask_headless_user_agent": false,
+  "webrtc_ip_handling_policy": null
+}
+```
+
 ## Register with a client
 
 ### Claude Code
@@ -77,3 +117,20 @@ patchright install chromium
 It accepts the same controls as the [Stealth](stealth.md) guide, including
 `channel`, `headless`, `patchright_context_profile`, `reduce_fingerprint_surface`,
 `mask_headless_user_agent`, and `webrtc_ip_handling_policy`.
+
+For headless best-effort stealth from MCP, use real Chrome and opt in only to the
+native browser controls you need:
+
+```json
+{
+  "url": "https://example.com",
+  "channel": "chrome",
+  "headless": true,
+  "mask_headless_user_agent": true,
+  "patchright_context_profile": true,
+  "webrtc_ip_handling_policy": "disable_non_proxied_udp"
+}
+```
+
+The MCP server does not solve CAPTCHA challenges, bypass login walls, bypass
+credential checks, or circumvent access controls.

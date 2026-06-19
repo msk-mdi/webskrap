@@ -151,3 +151,58 @@ headed mode.
 - Prefer an installed browser channel such as `chrome` when testing headed behavior.
 - Treat headless stealth as best-effort; headed Patchright remains the strict mode.
 - Avoid randomizing every request; incoherent changes can look less realistic.
+
+## Recipes
+
+Headed Chrome for the strictest Patchright path:
+
+```python
+from pathlib import Path
+
+from webskrap import SessionConfig
+
+config = SessionConfig(
+    driver="patchright",
+    channel="chrome",
+    headless=False,
+    user_data_dir=Path(".webskrap/patchright-profile"),
+)
+```
+
+Headless best-effort mode with a coherent virtual screen and browser-level
+user-agent cleanup:
+
+```python
+from pathlib import Path
+
+from webskrap import SessionConfig, Viewport
+
+config = SessionConfig(
+    driver="patchright",
+    channel="chrome",
+    headless=True,
+    user_data_dir=Path(".webskrap/headless-profile"),
+    headless_screen=Viewport(width=1366, height=768),
+    mask_headless_user_agent=True,
+)
+```
+
+Fingerprint-statistics and WebRTC leak-test mode:
+
+```python
+config = SessionConfig(
+    driver="patchright",
+    channel="chrome",
+    headless=True,
+    patchright_context_profile=True,
+    reduce_fingerprint_surface=True,
+    webrtc_ip_handling_policy="disable_non_proxied_udp",
+)
+```
+
+Run the live test suite only when you intentionally want to hit third-party demo
+sites:
+
+```bash
+WEBSKRAP_LIVE=1 pytest -q -m live
+```

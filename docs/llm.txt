@@ -19,40 +19,88 @@ python -m playwright install chromium
 - `WebSkrapSession`: persistent browser context wrapper.
 - `SessionConfig`: browser launch and context settings.
 - `BrowserProfile`: coherent browser-visible profile settings.
+- `ResourcePolicy`: request blocking presets (`ALL`, `LITE`, `DOCUMENTS`).
 - `FetchResult`: structured result returned from fetches.
 
-## Example
+## One-shot fetch
 
 ```python
 import asyncio
 
-from webskrap import WebSkrapClient
+from webskrap import ResourcePolicy, SessionConfig, WebSkrapClient
 
 
 async def main() -> None:
+    config = SessionConfig(resource_policy=ResourcePolicy.LITE)
     async with WebSkrapClient() as client:
-        result = await client.fetch("https://example.com")
-        print(result.status)
-        print(result.title)
+        result = await client.fetch(
+            "https://example.com",
+            config=config,
+            wait_until="load",
+            screenshot="example.png",
+        )
+    print(result.status, result.final_url, result.title)
+    print(result.screenshot_path)
 
 
 asyncio.run(main())
 ```
 
-## Patchright Headless
+## Persistent session
+
+```python
+import asyncio
+from pathlib import Path
+
+from webskrap import SessionConfig, WebSkrapClient
+
+
+async def main() -> None:
+    config = SessionConfig(user_data_dir=Path(".webskrap/session"), headless=True)
+
+    async with WebSkrapClient() as client:
+        session = await client.session("default", config=config)
+        first = await session.fetch("https://example.com")
+        second = await session.fetch("https://example.com/account")
+    print(first.status, second.final_url)
+
+
+asyncio.run(main())
+```
+
+## Patchright headless
 
 ```python
 from pathlib import Path
 
-from webskrap import SessionConfig
+from webskrap import SessionConfig, Viewport
 
 config = SessionConfig(
     driver="patchright",
     channel="chrome",
     headless=True,
     user_data_dir=Path(".webskrap/headless-profile"),
+    headless_screen=Viewport(width=1366, height=768),
+    mask_headless_user_agent=True,
 )
 ```
+
+Use headed Patchright with `channel="chrome"` for the strictest stealth path.
+Use `patchright_context_profile=True`, `reduce_fingerprint_surface=True`, and
+`webrtc_ip_handling_policy="disable_non_proxied_udp"` only when those native
+browser controls match the task.
+
+## CLI and MCP
+
+```bash
+webskrap doctor
+webskrap profiles
+webskrap fetch https://example.com --output page.html --resource-policy lite
+webskrap fetch https://example.com --driver patchright --channel chrome --headed
+webskrap-mcp
+```
+
+The MCP server exposes `fetch`, `stealth_fetch`, and `doctor`.
 
 ## Boundaries
 

@@ -19,6 +19,22 @@ webskrap doctor
 webskrap profiles
 ```
 
+## Optional extras
+
+Install only the extras you need:
+
+```bash
+pip install "webskrap[stealth]"      # Patchright driver
+pip install "webskrap[mcp]"          # MCP stdio server
+pip install "webskrap[mcp,stealth]"  # MCP plus stealth_fetch
+```
+
+Patchright uses its own browser install:
+
+```bash
+patchright install chromium
+```
+
 ## Development install
 
 For local development:
@@ -35,5 +51,13 @@ Run checks:
 ```bash
 pytest -q
 ruff check .
-mkdocs build --strict
+zensical build
+```
+
+If you use `uv`, the same checks can run through the project environment:
+
+```bash
+uv run pytest -q
+uv run ruff check .
+uv run zensical build
 ```
