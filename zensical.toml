@@ -7,8 +7,6 @@ repo_name = "kacigaya/webskrap"
 edit_uri = "edit/main/docs/"
 
 extra_css = ["stylesheets/extra.css"]
-extra_javascript = ["javascripts/copy.js"]
-
 nav = [
   { "Home" = "index.md" },
   { "Getting Started" = [

@@ -7,7 +7,7 @@ Code, ...) at that command to drive scraping through the tools below.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast, get_args
 
 from webskrap.client import WaitUntil, WebSkrapClient, WebSkrapError
 from webskrap.models import ResourcePolicy, SessionConfig, WebRtcIPHandlingPolicy
@@ -21,19 +21,11 @@ except ImportError as exc:  # pragma: no cover - optional dependency
 
 mcp = FastMCP("webskrap")
 
-_WAIT_UNTIL: tuple[WaitUntil, ...] = ("commit", "domcontentloaded", "load", "networkidle")
-_WEBRTC_POLICIES: tuple[WebRtcIPHandlingPolicy, ...] = (
-    "default",
-    "default_public_and_private_interfaces",
-    "default_public_interface_only",
-    "disable_non_proxied_udp",
-)
-
-
 def _parse_wait_until(value: str) -> WaitUntil:
-    if value not in _WAIT_UNTIL:
-        raise ValueError(f"wait_until must be one of: {', '.join(_WAIT_UNTIL)}")
-    return value  # type: ignore[return-value]
+    valid = get_args(WaitUntil)
+    if value not in valid:
+        raise ValueError(f"wait_until must be one of: {', '.join(valid)}")
+    return cast(WaitUntil, value)
 
 
 def _parse_resource_policy(value: str) -> ResourcePolicy:
@@ -47,9 +39,10 @@ def _parse_resource_policy(value: str) -> ResourcePolicy:
 def _parse_webrtc_policy(value: str | None) -> WebRtcIPHandlingPolicy | None:
     if value is None:
         return None
-    if value not in _WEBRTC_POLICIES:
-        raise ValueError(f"webrtc_ip_handling_policy must be one of: {', '.join(_WEBRTC_POLICIES)}")
-    return value  # type: ignore[return-value]
+    valid = get_args(WebRtcIPHandlingPolicy)
+    if value not in valid:
+        raise ValueError(f"webrtc_ip_handling_policy must be one of: {', '.join(valid)}")
+    return cast(WebRtcIPHandlingPolicy, value)
 
 
 def _shape_result(result: Any, max_chars: int) -> dict[str, Any]:

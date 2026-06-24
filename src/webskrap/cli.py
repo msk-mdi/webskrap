@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from typing import Annotated, Literal, cast
+from typing import Annotated, Literal, cast, get_args
 
 import typer
 from rich.console import Console
@@ -207,7 +207,7 @@ async def _fetch(
 
 
 def _parse_wait_until(value: str) -> WaitUntil:
-    valid = ("commit", "domcontentloaded", "load", "networkidle")
+    valid = get_args(WaitUntil)
     if value not in valid:
         allowed = ", ".join(valid)
         raise typer.BadParameter(f"must be one of: {allowed}")
@@ -215,7 +215,7 @@ def _parse_wait_until(value: str) -> WaitUntil:
 
 
 def _parse_driver(value: str) -> Driver:
-    valid = ("playwright", "patchright")
+    valid = get_args(Driver)
     if value not in valid:
         allowed = ", ".join(valid)
         raise typer.BadParameter(f"must be one of: {allowed}")
@@ -227,12 +227,7 @@ def _parse_webrtc_ip_handling_policy(
 ) -> WebRtcIPHandlingPolicy | None:
     if value is None:
         return None
-    valid = (
-        "default",
-        "default_public_and_private_interfaces",
-        "default_public_interface_only",
-        "disable_non_proxied_udp",
-    )
+    valid = get_args(WebRtcIPHandlingPolicy)
     if value not in valid:
         allowed = ", ".join(valid)
         raise typer.BadParameter(f"must be one of: {allowed}")

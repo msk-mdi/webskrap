@@ -216,36 +216,6 @@ body, .md-typeset {
 }
 .ws-prompt { color: var(--sky); margin-right: 0.45rem; user-select: none; }
 
-/* Copy button */
-.ws-copy {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  border: 1px solid var(--hairline);
-  background: color-mix(in srgb, var(--ink) 4%, var(--cloud));
-  color: var(--ink-soft);
-  cursor: pointer;
-  transition:
-    transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 180ms ease, border-color 180ms ease, color 180ms ease;
-}
-.ws-copy:hover { transform: translateY(-1px); border-color: var(--sky); color: var(--sky); }
-.ws-copy:active { transform: translateY(0); }
-.ws-copy:focus-visible {
-  outline: none;
-  border-color: var(--sky);
-  box-shadow: 0 0 0 3px rgba(46, 125, 239, 0.22);
-}
-.ws-copy__icon { width: 16px; height: 16px; }
-.ws-copy__check { display: none; }
-.ws-copy.is-copied { color: var(--meadow); border-color: color-mix(in srgb, var(--meadow) 50%, var(--hairline)); }
-.ws-copy.is-copied .ws-copy__copy { display: none; }
-.ws-copy.is-copied .ws-copy__check { display: block; }
-
 @keyframes ws-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) {
   .ws-hero h1, .ws-hero p.ws-tagline,
