@@ -194,11 +194,13 @@ class WebSkrapSession:
         start_x = x + uniform(-160, 160)
         start_y = y + uniform(-90, 90)
         await page.mouse.move(start_x, start_y, steps=1)
-        await page.mouse.move(
-            x + uniform(-8, 8),
-            y + uniform(-6, 6),
-            steps=max(4, min(18, int((box["width"] + box["height"]) / 10))),
-        )
+        end_x = x + uniform(-8, 8)
+        end_y = y + uniform(-6, 6)
+        distance = ((end_x - start_x) ** 2 + (end_y - start_y) ** 2) ** 0.5
+        steps = max(12, min(48, int(distance / 6)))
+        for px, py in _bezier_path((start_x, start_y), (end_x, end_y), steps):
+            await page.mouse.move(px, py, steps=1)
+            await page.wait_for_timeout(uniform(2, 9))
         await page.wait_for_timeout(uniform(40, 140))
 
         mouse_options = _mouse_click_options(click_options)
@@ -442,6 +444,42 @@ def _human_click_point(
         box["x"] + box["width"] / 2 + uniform(-jitter_x, jitter_x),
         box["y"] + box["height"] / 2 + uniform(-jitter_y, jitter_y),
     )
+
+
+def _bezier_path(
+    start: tuple[float, float],
+    end: tuple[float, float],
+    steps: int,
+) -> list[tuple[float, float]]:
+    """Curved, eased cursor path from start to end.
+
+    Mimics HumanCursor's trajectory: a cubic Bezier bent off the straight line
+    by randomized control points, with smoothstep-eased spacing so velocity
+    ramps up then slows near the target instead of moving in a straight,
+    evenly-spaced line (the linear ``mouse.move(steps=n)`` robot tell).
+    """
+    x0, y0 = start
+    x3, y3 = end
+    dx, dy = x3 - x0, y3 - y0
+    distance = max(1.0, (dx * dx + dy * dy) ** 0.5)
+    nx, ny = -dy / distance, dx / distance  # unit normal to the straight line
+    bend = distance * uniform(0.08, 0.22) * (1 if uniform(0, 1) < 0.5 else -1)
+    cx1 = x0 + dx / 3 + nx * bend * uniform(0.6, 1.0)
+    cy1 = y0 + dy / 3 + ny * bend * uniform(0.6, 1.0)
+    cx2 = x0 + dx * 2 / 3 + nx * bend * uniform(0.6, 1.0)
+    cy2 = y0 + dy * 2 / 3 + ny * bend * uniform(0.6, 1.0)
+
+    points: list[tuple[float, float]] = []
+    for i in range(1, steps + 1):
+        t = i / steps
+        t = t * t * (3 - 2 * t)  # smoothstep -> non-uniform speed
+        mt = 1 - t
+        bx = mt**3 * x0 + 3 * mt**2 * t * cx1 + 3 * mt * t**2 * cx2 + t**3 * x3
+        by = mt**3 * y0 + 3 * mt**2 * t * cy1 + 3 * mt * t**2 * cy2 + t**3 * y3
+        taper = mt  # jitter fades to zero at the target
+        points.append((bx + uniform(-1.2, 1.2) * taper, by + uniform(-1.2, 1.2) * taper))
+    points[-1] = (x3, y3)
+    return points
 
 
 def _mouse_click_options(click_options: dict[str, Any]) -> dict[str, Any]:

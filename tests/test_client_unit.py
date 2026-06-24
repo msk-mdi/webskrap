@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from webskrap.client import WebSkrapError, WebSkrapSession, _resource_route_handler
+from webskrap.client import (
+    WebSkrapError,
+    WebSkrapSession,
+    _bezier_path,
+    _resource_route_handler,
+)
 from webskrap.models import ResourcePolicy, SessionConfig
 from webskrap.profiles import get_profile
 
@@ -159,10 +164,33 @@ async def test_human_click_waits_moves_and_clicks(monkeypatch: pytest.MonkeyPatc
     assert page.locators == ["label[for='radio1']"]
     assert locator.waits == [{"state": "visible", "timeout": 1500}]
     assert locator.scrolled == [{"timeout": 1500}]
-    assert page.timeouts == [0, 0]
-    assert page.mouse.moves == [(30, 30, 1), (30, 30, 14)]
+    # uniform mocked to 0: start == end == (30, 30), so distance 0 -> 12 steps.
+    assert page.mouse.moves[0] == (30, 30, 1)
+    assert len(page.mouse.moves) == 1 + 12
+    assert page.mouse.moves[-1] == (30, 30, 1)  # path lands exactly on target
+    assert all(
+        move[2] == 1 and abs(move[0] - 30) < 1e-6 and abs(move[1] - 30) < 1e-6
+        for move in page.mouse.moves
+    )
+    # one settle wait + one wait per curve step + one final wait.
+    assert page.timeouts == [0] * (1 + 12 + 1)
     assert page.mouse.clicks == [(30, 30, {"button": "left", "click_count": 1, "delay": 25})]
     assert page.keyboard.events == [("down", "Shift"), ("up", "Shift")]
+
+
+def test_bezier_path_curves_and_lands_on_target() -> None:
+    start, end = (0.0, 0.0), (200.0, 100.0)
+    path = _bezier_path(start, end, 24)
+
+    assert len(path) == 24
+    assert path[-1] == end  # exact landing
+    # at least one point bows off the straight start->end line (curved, not linear).
+    dx, dy = end[0] - start[0], end[1] - start[1]
+
+    def offline(p: tuple[float, float]) -> float:
+        return abs(dx * (start[1] - p[1]) - (start[0] - p[0]) * dy)
+
+    assert max(offline(p) for p in path) > 1.0
 
 
 @pytest.mark.asyncio
