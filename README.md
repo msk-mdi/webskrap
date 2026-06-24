@@ -103,6 +103,12 @@ await page.goto("https://example.com", wait_until="domcontentloaded")
 await session.human_click(page, "label[for='radio1']")
 ```
 
+The cursor follows a cubic Bezier curve with randomized control points and
+eased spacing, so it arcs toward the target and its speed ramps up then slows
+near the end instead of tracing a straight, evenly spaced line. The curve
+algorithm is adapted from [HumanCursor](https://github.com/riflosnake/HumanCursor);
+WebSkrap reimplements it for Playwright's async mouse and adds no dependency.
+
 Enable the cursor hint in a headed browser when you want to see a red dot follow the
 automated mouse movement. Re-enable it after navigation if you still need it.
 
