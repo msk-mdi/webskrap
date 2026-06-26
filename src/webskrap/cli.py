@@ -8,8 +8,12 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from webskrap.client import WaitUntil, WebSkrapClient
-from webskrap.models import ResourcePolicy, SessionConfig, WebRtcIPHandlingPolicy
+from webskrap.client import WebSkrapClient
+from webskrap.models import ResourcePolicy, SessionConfig, WaitUntil, WebRtcIPHandlingPolicy
+from webskrap.parsing import (
+    parse_wait_until,
+    parse_webrtc_ip_handling_policy,
+)
 from webskrap.profiles import get_profile, list_profiles
 
 app = typer.Typer(help="WebSkrap browser scraping toolkit.")
@@ -207,11 +211,10 @@ async def _fetch(
 
 
 def _parse_wait_until(value: str) -> WaitUntil:
-    valid = get_args(WaitUntil)
-    if value not in valid:
-        allowed = ", ".join(valid)
-        raise typer.BadParameter(f"must be one of: {allowed}")
-    return cast(WaitUntil, value)
+    try:
+        return parse_wait_until(value)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc).partition(" must ")[2]) from exc
 
 
 def _parse_driver(value: str) -> Driver:
@@ -225,10 +228,7 @@ def _parse_driver(value: str) -> Driver:
 def _parse_webrtc_ip_handling_policy(
     value: str | None,
 ) -> WebRtcIPHandlingPolicy | None:
-    if value is None:
-        return None
-    valid = get_args(WebRtcIPHandlingPolicy)
-    if value not in valid:
-        allowed = ", ".join(valid)
-        raise typer.BadParameter(f"must be one of: {allowed}")
-    return cast(WebRtcIPHandlingPolicy, value)
+    try:
+        return parse_webrtc_ip_handling_policy(value)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc).partition(" must ")[2]) from exc

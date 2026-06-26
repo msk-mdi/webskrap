@@ -214,32 +214,3 @@ async def test_human_click_raises_for_missing_bounding_box() -> None:
 
     with pytest.raises(WebSkrapError, match="visible bounding box"):
         await _session().human_click(page, "label[for='radio1']")  # type: ignore[arg-type]
-
-
-@pytest.mark.asyncio
-async def test_enable_cursor_hint_injects_guarded_marker_script() -> None:
-    page = _Page()
-
-    await _session().enable_cursor_hint(page)  # type: ignore[arg-type]
-
-    assert len(page.evaluations) == 1
-    script = page.evaluations[0]
-    assert "__webskrapCursorHint" in script
-    assert "if (window.__webskrapCursorHint)" in script
-    assert "rgba(255, 0, 0, 0.9)" in script
-    assert "mousemove" in script
-    assert "pointerEvents" in script
-
-
-@pytest.mark.asyncio
-async def test_disable_cursor_hint_injects_idempotent_cleanup_script() -> None:
-    page = _Page()
-
-    await _session().disable_cursor_hint(page)  # type: ignore[arg-type]
-
-    assert len(page.evaluations) == 1
-    script = page.evaluations[0]
-    assert "__webskrapCursorHint" in script
-    assert "if (!state)" in script
-    assert "removeEventListener" in script
-    assert "state.marker.remove()" in script

@@ -17,25 +17,15 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import pytest
+from live_stealth_helpers import live_proxy, wait_for_recaptcha_score_or_skip
 
-from webskrap import ProxyConfig, SessionConfig, Viewport, WebSkrapClient
+from webskrap import SessionConfig, Viewport, WebSkrapClient
 
 pytestmark = [pytest.mark.browser, pytest.mark.live]
 
 LIVE_HEADLESS_PROFILE_DIR = Path(
     os.environ.get("WEBSKRAP_LIVE_HEADLESS_PROFILE_DIR", ".webskrap/live-headless-profile")
 )
-
-
-def _live_proxy() -> ProxyConfig | None:
-    server = os.environ.get("WEBSKRAP_LIVE_PROXY")
-    if not server:
-        return None
-    return ProxyConfig(
-        server=server,
-        username=os.environ.get("WEBSKRAP_LIVE_PROXY_USERNAME"),
-        password=os.environ.get("WEBSKRAP_LIVE_PROXY_PASSWORD"),
-    )
 
 
 STEALTH_HEADLESS = SessionConfig(
@@ -45,7 +35,7 @@ STEALTH_HEADLESS = SessionConfig(
     user_data_dir=LIVE_HEADLESS_PROFILE_DIR,
     headless_screen=Viewport(width=1366, height=768),
     mask_headless_user_agent=True,
-    proxy=_live_proxy(),
+    proxy=live_proxy(),
     webrtc_ip_handling_policy="disable_non_proxied_udp",
 )
 
@@ -106,7 +96,7 @@ async def test_recaptcha_v3_headless() -> None:
             wait_until="domcontentloaded",
             timeout=60_000,
         )
-        await _wait_for_recaptcha_score_or_skip(page)
+        await wait_for_recaptcha_score_or_skip(page)
         score = await page.evaluate(
             """() => {
                 const m = document.body.innerText.match(/"score":\\s*(\\d+\\.\\d+)/);
@@ -114,21 +104,6 @@ async def test_recaptcha_v3_headless() -> None:
             }"""
         )
     assert score is not None, "could not extract reCAPTCHA v3 score"
-
-
-async def _wait_for_recaptcha_score_or_skip(page) -> None:
-    try:
-        await page.wait_for_function(
-            """() => /"score":\\s*\\d+\\.\\d+/.test(document.body.innerText)""",
-            timeout=45_000,
-        )
-    except Exception as exc:  # noqa: BLE001 - patchright has its own TimeoutError type
-        if exc.__class__.__name__ != "TimeoutError":
-            raise
-        text = await page.evaluate("() => document.body.innerText")
-        if "grecaptcha.ready() fired" in text and "grecaptcha.execute" in text:
-            pytest.skip("reCAPTCHA demo did not return a score after execute()")
-        raise
 
 
 async def test_cloudflare_turnstile_headless_loads() -> None:

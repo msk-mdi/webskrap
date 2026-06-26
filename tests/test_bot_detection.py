@@ -39,25 +39,15 @@ from json import loads
 from pathlib import Path
 
 import pytest
+from live_stealth_helpers import live_proxy, wait_for_recaptcha_score_or_skip
 
-from webskrap import ProxyConfig, SessionConfig, WebSkrapClient
+from webskrap import SessionConfig, WebSkrapClient
 
 pytestmark = [pytest.mark.browser, pytest.mark.live]
 
 LIVE_PROFILE_DIR = Path(
     os.environ.get("WEBSKRAP_LIVE_PROFILE_DIR", ".webskrap/live-stealth-profile")
 )
-
-
-def _live_proxy() -> ProxyConfig | None:
-    server = os.environ.get("WEBSKRAP_LIVE_PROXY")
-    if not server:
-        return None
-    return ProxyConfig(
-        server=server,
-        username=os.environ.get("WEBSKRAP_LIVE_PROXY_USERNAME"),
-        password=os.environ.get("WEBSKRAP_LIVE_PROXY_PASSWORD"),
-    )
 
 
 # patchright is a CDP-leak-free Playwright fork; it is the stealth mechanism.
@@ -68,7 +58,7 @@ STEALTH = SessionConfig(
     channel=os.environ.get("WEBSKRAP_BROWSER_CHANNEL", "chrome"),
     headless=False,
     user_data_dir=LIVE_PROFILE_DIR,
-    proxy=_live_proxy(),
+    proxy=live_proxy(),
     webrtc_ip_handling_policy="disable_non_proxied_udp",
 )
 
@@ -156,7 +146,7 @@ async def test_recaptcha_v3() -> None:
             wait_until="domcontentloaded",
             timeout=60_000,
         )
-        await _wait_for_recaptcha_score_or_skip(page)
+        await wait_for_recaptcha_score_or_skip(page)
         score = await page.evaluate(
             """() => {
                 const m = document.body.innerText.match(/"score":\\s*(\\d+\\.\\d+)/);
@@ -165,21 +155,6 @@ async def test_recaptcha_v3() -> None:
         )
     assert score is not None, "could not extract reCAPTCHA v3 score"
     assert score >= 0.7, f"reCAPTCHA v3 score too low: {score}"
-
-
-async def _wait_for_recaptcha_score_or_skip(page) -> None:
-    try:
-        await page.wait_for_function(
-            """() => /"score":\\s*\\d+\\.\\d+/.test(document.body.innerText)""",
-            timeout=45_000,
-        )
-    except Exception as exc:  # noqa: BLE001 - patchright has its own TimeoutError type
-        if exc.__class__.__name__ != "TimeoutError":
-            raise
-        text = await page.evaluate("() => document.body.innerText")
-        if "grecaptcha.ready() fired" in text and "grecaptcha.execute" in text:
-            pytest.skip("reCAPTCHA demo did not return a score after execute()")
-        raise
 
 
 async def test_cloudflare_turnstile_demo() -> None:

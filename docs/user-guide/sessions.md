@@ -119,16 +119,6 @@ await session.human_click(
 )
 ```
 
-Enable the cursor hint in a headed browser to show a red dot at the automated mouse
-position while debugging. The hint is scoped to the current page document, so enable it
-again after navigation if needed.
-
-```python
-await session.enable_cursor_hint(page)
-await session.human_click(page, "label[for='radio1']")
-await session.disable_cursor_hint(page)
-```
-
 ## Common options
 
 ```python

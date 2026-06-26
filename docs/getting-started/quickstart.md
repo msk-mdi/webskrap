@@ -109,15 +109,6 @@ await page.goto("https://example.com", wait_until="domcontentloaded")
 await session.human_click(page, "label[for='radio1']")
 ```
 
-For headed debugging, enable the cursor hint to show a red dot at the automated mouse
-position. Re-enable it after navigation if you still need it.
-
-```python
-await session.enable_cursor_hint(page)
-await session.human_click(page, "label[for='radio1']")
-await session.disable_cursor_hint(page)
-```
-
 ## Profiles and resource policy
 
 Pick a built-in profile by name, or pass a custom `BrowserProfile`.

@@ -101,7 +101,6 @@ async with WebSkrapClient() as client:
     session = await client.session("debug", config=SessionConfig(headless=False))
     page = await session.context.new_page()
     await page.goto("https://example.com", wait_until="domcontentloaded")
-    await session.enable_cursor_hint(page)
     await session.human_click(page, "a")
 ```
 

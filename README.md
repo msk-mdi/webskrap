@@ -109,15 +109,6 @@ near the end instead of tracing a straight, evenly spaced line. The curve
 algorithm is adapted from [HumanCursor](https://github.com/riflosnake/HumanCursor);
 WebSkrap reimplements it for Playwright's async mouse and adds no dependency.
 
-Enable the cursor hint in a headed browser when you want to see a red dot follow the
-automated mouse movement. Re-enable it after navigation if you still need it.
-
-```python
-await session.enable_cursor_hint(page)
-await session.human_click(page, "label[for='radio1']")
-await session.disable_cursor_hint(page)
-```
-
 Example for a headed Chrome session with a French desktop profile:
 
 ```python
@@ -310,7 +301,7 @@ WebSkrap values are from the local live report generated on 2026-06-26 with
 | **TLS / JA3 visibility** | Mismatch | **Identical to Chrome** | **PASS** | TLS/JA3/JA4 surface is visible; no proxy mismatch without proxy |
 | **DNS leak standard test** | Not listed | Not listed | **PASS** | Resolver rows are public; optional proxy country/IP expectations supported |
 
-Latest WebSkrap live summary: 25 passed, 2 failed, 1 skipped. Headed: 17
+Latest WebSkrap live summary: 24 passed, 2 failed, 1 skipped. Headed: 17
 passed, 1 failed. Headless: 7 passed, 1 failed, 1 skipped. The two failures
 were Sannysoft headed/headless `networkidle` timeouts; the headless skip was
 reCAPTCHA v3 not returning a score from Google's public demo.

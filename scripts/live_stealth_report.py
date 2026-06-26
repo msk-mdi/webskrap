@@ -19,11 +19,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REPORT_DIR = ROOT / ".webskrap" / "reports"
 DEFAULT_JSON = DEFAULT_REPORT_DIR / "live-stealth-results.json"
 DEFAULT_HTML = DEFAULT_REPORT_DIR / "live-stealth-results.html"
-MATRIX = ROOT / "bot_detection_test_sites.md"
 SUITES = (
     ROOT / "tests" / "test_bot_detection.py",
     ROOT / "tests" / "test_bot_detection_headless.py",
-    ROOT / "tests" / "test_bot_detection_sites_matrix.py",
 )
 
 
@@ -84,8 +82,6 @@ def suite_for_nodeid(nodeid: str) -> str:
     path = nodeid.split("::", 1)[0].replace("\\", "/")
     if path.endswith("test_bot_detection_headless.py"):
         return "headless"
-    if path.endswith("test_bot_detection_sites_matrix.py"):
-        return "matrix"
     if path.endswith("test_bot_detection.py"):
         return "headed"
     return "other"
@@ -98,17 +94,6 @@ def summarize(results: list[TestResult]) -> dict[str, Any]:
         counts = Counter(result.outcome for result in results if result.suite == suite)
         by_suite[suite] = dict(counts)
     return {"overall": dict(overall), "by_suite": by_suite}
-
-
-def category_counts(matrix: Path = MATRIX) -> dict[str, int]:
-    if not matrix.exists():
-        return {}
-    counts: Counter[str] = Counter()
-    for line in matrix.read_text(encoding="utf-8").splitlines():
-        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
-        if len(cells) >= 5 and cells[0].lower() == "active":
-            counts[cells[1]] += 1
-    return dict(sorted(counts.items()))
 
 
 def comparison_rows(results: list[TestResult]) -> list[dict[str, str]]:
@@ -149,7 +134,6 @@ def bar_chart(title: str, values: dict[str, int], colors: dict[str, str] | None 
 def render_html(payload: dict[str, Any]) -> str:
     results = [TestResult(**item) for item in payload["tests"]]
     summary = payload["summary"]
-    categories = payload.get("matrix_categories", {})
     colors = {"passed": "#15803d", "failed": "#b91c1c", "skipped": "#a16207"}
     suite_values = {
         suite: sum(counts.values()) for suite, counts in summary.get("by_suite", {}).items()
@@ -200,7 +184,6 @@ Started {escape(payload["started_at"])}; duration {payload["duration_seconds"]:.
 </p>
 {bar_chart("Overall Outcomes", summary.get("overall", {}), colors)}
 {bar_chart("Tests Per Suite", suite_values)}
-{bar_chart("Matrix Category Coverage", categories)}
 <h2>Headed vs Headless</h2>
 <table>
 <thead><tr><th>Test</th><th>Headed</th><th>Headless</th></tr></thead>
@@ -230,7 +213,6 @@ def build_payload(results: list[TestResult], started: float, finished: float) ->
         },
         "tests": [result.to_json() for result in results],
         "summary": summarize(results),
-        "matrix_categories": category_counts(),
     }
 
 
@@ -259,7 +241,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-open", action="store_true", help="Do not open the HTML report.")
     parser.add_argument(
         "--report-only",
-        "--always-zero",
         action="store_true",
         help="Write reports and exit 0 even if live tests fail.",
     )

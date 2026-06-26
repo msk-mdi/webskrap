@@ -12,6 +12,7 @@ WebRtcIPHandlingPolicy = Literal[
     "default_public_interface_only",
     "disable_non_proxied_udp",
 ]
+WaitUntil = Literal["commit", "domcontentloaded", "load", "networkidle"]
 
 
 class ResourcePolicy(StrEnum):

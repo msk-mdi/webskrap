@@ -7,10 +7,15 @@ Code, ...) at that command to drive scraping through the tools below.
 
 from __future__ import annotations
 
-from typing import Any, cast, get_args
+from typing import Any
 
-from webskrap.client import WaitUntil, WebSkrapClient, WebSkrapError
-from webskrap.models import ResourcePolicy, SessionConfig, WebRtcIPHandlingPolicy
+from webskrap.client import WebSkrapClient, WebSkrapError
+from webskrap.models import SessionConfig
+from webskrap.parsing import (
+    parse_resource_policy,
+    parse_wait_until,
+    parse_webrtc_ip_handling_policy,
+)
 from webskrap.profiles import get_profile
 
 try:
@@ -20,29 +25,6 @@ except ImportError as exc:  # pragma: no cover - optional dependency
     raise WebSkrapError(msg) from exc
 
 mcp = FastMCP("webskrap")
-
-def _parse_wait_until(value: str) -> WaitUntil:
-    valid = get_args(WaitUntil)
-    if value not in valid:
-        raise ValueError(f"wait_until must be one of: {', '.join(valid)}")
-    return cast(WaitUntil, value)
-
-
-def _parse_resource_policy(value: str) -> ResourcePolicy:
-    try:
-        return ResourcePolicy(value)
-    except ValueError as exc:
-        allowed = ", ".join(p.value for p in ResourcePolicy)
-        raise ValueError(f"resource_policy must be one of: {allowed}") from exc
-
-
-def _parse_webrtc_policy(value: str | None) -> WebRtcIPHandlingPolicy | None:
-    if value is None:
-        return None
-    valid = get_args(WebRtcIPHandlingPolicy)
-    if value not in valid:
-        raise ValueError(f"webrtc_ip_handling_policy must be one of: {', '.join(valid)}")
-    return cast(WebRtcIPHandlingPolicy, value)
 
 
 def _shape_result(result: Any, max_chars: int) -> dict[str, Any]:
@@ -83,14 +65,14 @@ async def fetch(
     """
     config = SessionConfig(
         navigation_timeout_ms=timeout_ms,
-        resource_policy=_parse_resource_policy(resource_policy),
+        resource_policy=parse_resource_policy(resource_policy),
     )
     async with WebSkrapClient() as client:
         result = await client.fetch(
             url,
             profile=get_profile(profile),
             config=config,
-            wait_until=_parse_wait_until(wait_until),
+            wait_until=parse_wait_until(wait_until),
             timeout_ms=timeout_ms,
         )
     return _shape_result(result, max_chars)
@@ -136,7 +118,7 @@ async def stealth_fetch(
         patchright_context_profile=patchright_context_profile,
         reduce_fingerprint_surface=reduce_fingerprint_surface,
         mask_headless_user_agent=mask_headless_user_agent,
-        webrtc_ip_handling_policy=_parse_webrtc_policy(webrtc_ip_handling_policy),
+        webrtc_ip_handling_policy=parse_webrtc_ip_handling_policy(webrtc_ip_handling_policy),
     )
     async with WebSkrapClient() as client:
         result = await client.fetch(

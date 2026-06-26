@@ -7,15 +7,13 @@ import time
 from collections.abc import Mapping
 from pathlib import Path
 from random import uniform
-from typing import Any, Literal
+from typing import Any
 from uuid import uuid4
 
 from playwright.async_api import Browser, BrowserContext, Page, Playwright
 
-from webskrap.models import BrowserProfile, FetchResult, ResourcePolicy, SessionConfig
+from webskrap.models import BrowserProfile, FetchResult, ResourcePolicy, SessionConfig, WaitUntil
 from webskrap.profiles import get_profile
-
-WaitUntil = Literal["commit", "domcontentloaded", "load", "networkidle"]
 
 
 def _async_playwright(driver: str):
@@ -39,54 +37,6 @@ def _async_playwright(driver: str):
     from playwright.async_api import async_playwright
 
     return async_playwright()
-
-_CURSOR_HINT_ENABLE_SCRIPT = """
-() => {
-    const markerId = "__webskrap_cursor_hint";
-    if (window.__webskrapCursorHint) {
-        return;
-    }
-
-    const marker = document.createElement("div");
-    marker.id = markerId;
-    marker.setAttribute("aria-hidden", "true");
-    Object.assign(marker.style, {
-        position: "fixed",
-        left: "0px",
-        top: "0px",
-        width: "12px",
-        height: "12px",
-        borderRadius: "50%",
-        background: "rgba(255, 0, 0, 0.9)",
-        border: "2px solid rgba(255, 255, 255, 0.95)",
-        boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 12px rgba(255, 0, 0, 0.65)",
-        transform: "translate(-50%, -50%)",
-        pointerEvents: "none",
-        zIndex: "2147483647",
-    });
-
-    const move = (event) => {
-        marker.style.left = `${event.clientX}px`;
-        marker.style.top = `${event.clientY}px`;
-    };
-
-    document.documentElement.appendChild(marker);
-    window.__webskrapCursorHint = { marker, move };
-    window.addEventListener("mousemove", move, true);
-}
-"""
-
-_CURSOR_HINT_DISABLE_SCRIPT = """
-() => {
-    const state = window.__webskrapCursorHint;
-    if (!state) {
-        return;
-    }
-    window.removeEventListener("mousemove", state.move, true);
-    state.marker.remove();
-    delete window.__webskrapCursorHint;
-}
-"""
 
 
 class WebSkrapError(RuntimeError):
@@ -213,14 +163,6 @@ class WebSkrapSession:
             for modifier in reversed(modifiers):
                 await page.keyboard.up(modifier)
 
-    async def enable_cursor_hint(self, page: Page) -> None:
-        self._ensure_open()
-        await page.evaluate(_CURSOR_HINT_ENABLE_SCRIPT)
-
-    async def disable_cursor_hint(self, page: Page) -> None:
-        self._ensure_open()
-        await page.evaluate(_CURSOR_HINT_DISABLE_SCRIPT)
-
     async def close(self) -> None:
         if self._closed:
             return
@@ -333,11 +275,7 @@ class WebSkrapClient:
         context_options = config.context_options(profile)
         launch_options = config.launch_options()
 
-        if (
-            config.mask_headless_user_agent
-            and config.headless
-            and config.browser == "chromium"
-        ):
+        if config.mask_headless_user_agent and config.headless and config.browser == "chromium":
             clean_ua = await self._headless_clean_user_agent(browser_type, config)
             if clean_ua:
                 # Apply the clean UA via the launch flag only. It covers the
@@ -384,7 +322,6 @@ class WebSkrapClient:
             browser=browser,
             temp_user_data_dir=temp_user_data_dir,
         )
-
 
     async def _headless_clean_user_agent(
         self, browser_type: Any, config: SessionConfig
@@ -497,9 +434,7 @@ async def _maybe_screenshot(page: Page, screenshot: bool | str | Path) -> Path |
     if not screenshot:
         return None
     path = (
-        Path(f"webskrap-{int(time.time() * 1000)}.png")
-        if screenshot is True
-        else Path(screenshot)
+        Path(f"webskrap-{int(time.time() * 1000)}.png") if screenshot is True else Path(screenshot)
     )
     path.parent.mkdir(parents=True, exist_ok=True)
     await page.screenshot(path=str(path), full_page=True)
