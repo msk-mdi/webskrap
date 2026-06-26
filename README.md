@@ -267,6 +267,54 @@ and deviceandbrowserinfo behavioral detection. See
 `stealth` extra; without a `user_data_dir` it uses a throwaway persistent profile,
 which patchright requires for full stealth.
 
+Generate the live headed/headless graph report with:
+
+```bash
+$env:WEBSKRAP_LIVE=1
+python scripts\live_stealth_report.py --no-open --report-only
+```
+
+Open `.webskrap/reports/live-stealth-results.html`.
+
+For proxy DNS checks, set `WEBSKRAP_LIVE_EXPECTED_PUBLIC_IP` or
+`WEBSKRAP_LIVE_EXPECTED_COUNTRY`.
+
+## Comparison
+
+CloakBrowser values below are copied from its
+[upstream README](https://github.com/CloakHQ/CloakBrowser/blob/main/README.md).
+WebSkrap values are from the local live report generated on 2026-06-26 with
+`python scripts\live_stealth_report.py --no-open --report-only`.
+
+| Feature | Playwright | playwright-stealth | undetected-chromedriver | Camoufox | CloakBrowser | WebSkrap patchright |
+|---|---|---|---|---|---|---|
+| reCAPTCHA v3 score | 0.1 | 0.3-0.5 | 0.3-0.7 | 0.7-0.9 | **0.9** | Pass in headed mode (`>=0.7` gate) |
+| Cloudflare Turnstile | Fail | Sometimes | Sometimes | Pass | **Pass** | Pass headed; renders headless |
+| Patch level | None | JS injection | Config patches | C++ (Firefox) | **C++ (Chromium)** | Patchright browser driver + Chrome flags |
+| Survives Chrome updates | N/A | Breaks often | Breaks often | Yes | **Yes** | Depends on Chrome + Patchright compatibility |
+| Maintained | Yes | Stale | Stale | Unstable | **Active** | Active project tests |
+| Browser engine | Chromium | Chromium | Chrome | Firefox | **Chromium** | Chrome/Chromium |
+| Playwright API | Native | Native | No (Selenium) | No | **Native** | Native-compatible |
+
+| Detection Service | Stock Playwright | CloakBrowser | WebSkrap patchright headed | Notes |
+|---|---|---|---|---|
+| **reCAPTCHA v3** | 0.1 (bot) | **0.9** (human) | **PASS** | WebSkrap asserts score `>=0.7` when Google's demo returns one |
+| **Cloudflare Turnstile** (non-interactive) | FAIL | **PASS** | **PASS** | Public demo returns a token and success JSON |
+| **FingerprintJS** bot detection | DETECTED | **PASS** | **PASS** | `demo.fingerprint.com/web-scraping` returns demo data |
+| **BrowserScan** bot detection | DETECTED | **NORMAL** (4/4) | **PASS** | 0 abnormal checks in headed run |
+| **bot.incolumitas.com** | 13 fails | **1 fail** | **PASS** | Only tolerated network/spec false positives |
+| **deviceandbrowserinfo.com** | 6 true flags | **0 true flags** | **PASS** | `isBot: false` |
+| **bot.sannysoft.com** | DETECTED | Not listed | **TIMEOUT** | Latest run timed out waiting for `networkidle` |
+| **BrowserLeaks WebRTC** | Not listed | Not listed | **PASS** | No private ICE candidate IPs exposed |
+| **BrowserLeaks Client Hints** | Not listed | Not listed | **PASS** | No `HeadlessChrome` token |
+| **TLS / JA3 visibility** | Mismatch | **Identical to Chrome** | **PASS** | TLS/JA3/JA4 surface is visible; no proxy mismatch without proxy |
+| **DNS leak standard test** | Not listed | Not listed | **PASS** | Resolver rows are public; optional proxy country/IP expectations supported |
+
+Latest WebSkrap live summary: 25 passed, 2 failed, 1 skipped. Headed: 17
+passed, 1 failed. Headless: 7 passed, 1 failed, 1 skipped. The two failures
+were Sannysoft headed/headless `networkidle` timeouts; the headless skip was
+reCAPTCHA v3 not returning a score from Google's public demo.
+
 ### Headless patchright
 
 Headed patchright is the strongest stealth mode. For best-effort headless runs,

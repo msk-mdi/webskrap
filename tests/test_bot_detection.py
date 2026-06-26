@@ -11,48 +11,65 @@ change their markup or scoring at any time. They only exercise public detection
 demos meant for this purpose — no CAPTCHA solving or access-control bypass.
 
 They pass with the patchright stealth driver (``driver="patchright"``), which is
-a CDP-leak-free Playwright fork, run headless against the real Chrome channel
-with a simulated screen and a masked headless user agent:
+a CDP-leak-free Playwright fork, run headed against the real Chrome channel
+with a persistent Chrome profile:
 
 - patchright hides the CDP ``Runtime.enable`` leak (``isAutomatedWithCDP``);
-- ``headless_screen`` configures a virtual display at launch so screen/window
-  metrics stay coherent instead of leaking the 800x600 headless default;
-- ``mask_headless_user_agent`` rewrites the ``HeadlessChrome`` UA tell (main
-  thread plus workers, including ``SharedWorker``) to ``Chrome`` via the
-  browser's own ``--user-agent`` override;
+- ``user_data_dir`` keeps Chrome profile state stable between live runs;
+- ``webrtc_ip_handling_policy`` blocks non-proxied UDP ICE candidates;
 - the real Chrome channel avoids FingerprintJS's anti-detect tampering signal
   that flags patchright's bundled Chromium;
 - WebSkrap avoids JavaScript fingerprint spoofing and synthetic profile
   injection, so the browser's real fingerprint shows through instead of a
   spoofed one.
 
-Requires Google Chrome installed on the host and the optional stealth extra
-(``pip install webskrap[stealth]`` plus ``patchright install chromium``).
+Compare this strict headed suite with ``test_bot_detection_headless.py`` for the
+current headless baseline. Requires Google Chrome installed on the host and the
+optional stealth extra (``pip install webskrap[stealth]`` plus
+``patchright install chromium``).
 """
 
 from __future__ import annotations
 
 import os
-from contextlib import asynccontextmanager
+import re
+from contextlib import asynccontextmanager, suppress
+from ipaddress import ip_address
+from json import loads
+from pathlib import Path
 
 import pytest
 
-from webskrap import SessionConfig, Viewport, WebSkrapClient
+from webskrap import ProxyConfig, SessionConfig, WebSkrapClient
 
 pytestmark = [pytest.mark.browser, pytest.mark.live]
 
+LIVE_PROFILE_DIR = Path(
+    os.environ.get("WEBSKRAP_LIVE_PROFILE_DIR", ".webskrap/live-stealth-profile")
+)
+
+
+def _live_proxy() -> ProxyConfig | None:
+    server = os.environ.get("WEBSKRAP_LIVE_PROXY")
+    if not server:
+        return None
+    return ProxyConfig(
+        server=server,
+        username=os.environ.get("WEBSKRAP_LIVE_PROXY_USERNAME"),
+        password=os.environ.get("WEBSKRAP_LIVE_PROXY_PASSWORD"),
+    )
+
+
 # patchright is a CDP-leak-free Playwright fork; it is the stealth mechanism.
-# Run headless against the real Chrome channel with a simulated screen and a
-# masked headless user agent: headless_screen gives coherent screen/window
-# metrics, and mask_headless_user_agent rewrites the "HeadlessChrome" UA tell
-# (main + worker) to "Chrome" via the browser's own UA override. Google Chrome
-# must be installed on the host.
+# Run headed against the real Chrome channel with a stable profile. Google
+# Chrome must be installed on the host.
 STEALTH = SessionConfig(
     driver="patchright",
-    channel="chrome",
-    headless=True,
-    headless_screen=Viewport(width=1366, height=768),
-    mask_headless_user_agent=True,
+    channel=os.environ.get("WEBSKRAP_BROWSER_CHANNEL", "chrome"),
+    headless=False,
+    user_data_dir=LIVE_PROFILE_DIR,
+    proxy=_live_proxy(),
+    webrtc_ip_handling_policy="disable_non_proxied_udp",
 )
 
 
@@ -79,6 +96,58 @@ async def stealth_page():
         await client.close()
 
 
+def _ip_literals(text: str) -> list[str]:
+    found: list[str] = []
+    for match in re.finditer(r"\b(?:\d{1,3}\.){3}\d{1,3}\b", text):
+        with suppress(ValueError):
+            found.append(str(ip_address(match.group(0))))
+    return found
+
+
+def _private_candidate_ips(text: str) -> list[str]:
+    lines = [
+        line
+        for line in text.splitlines()
+        if "candidate" in line.lower() or "ip address" in line.lower()
+    ]
+    return [
+        ip
+        for ip in _ip_literals("\n".join(lines))
+        if (ip_address(ip).is_private or ip_address(ip).is_loopback or ip_address(ip).is_link_local)
+    ]
+
+
+def _is_public_ip(value: str) -> bool:
+    parsed = ip_address(value)
+    return not (parsed.is_private or parsed.is_loopback or parsed.is_link_local)
+
+
+async def _json_body(page, url: str) -> dict:
+    response = await page.goto(url, wait_until="domcontentloaded", timeout=60_000)
+    assert response and response.status < 400, (
+        f"{url} returned {response.status if response else None}"
+    )
+    return loads(await page.locator("body").inner_text(timeout=10_000))
+
+
+async def _dnsleaktest_rows(page) -> list[dict[str, str]]:
+    return await page.evaluate(
+        """() => {
+            const table = document.querySelector('table');
+            if (!table) return [];
+            const rows = [...table.querySelectorAll('tr')].map((tr) =>
+                [...tr.children].map((td) => td.innerText.trim())
+            );
+            return rows.slice(1).map(([ip, hostname, isp, country]) => ({
+                ip,
+                hostname,
+                isp,
+                country,
+            })).filter((row) => row.ip);
+        }"""
+    )
+
+
 async def test_recaptcha_v3() -> None:
     # reCAPTCHA v3 score must be >= 0.7 (human range).
     async with stealth_page() as page:
@@ -87,10 +156,7 @@ async def test_recaptcha_v3() -> None:
             wait_until="domcontentloaded",
             timeout=60_000,
         )
-        await page.wait_for_function(
-            """() => /"score":\\s*\\d+\\.\\d+/.test(document.body.innerText)""",
-            timeout=45_000,
-        )
+        await _wait_for_recaptcha_score_or_skip(page)
         score = await page.evaluate(
             """() => {
                 const m = document.body.innerText.match(/"score":\\s*(\\d+\\.\\d+)/);
@@ -99,6 +165,21 @@ async def test_recaptcha_v3() -> None:
         )
     assert score is not None, "could not extract reCAPTCHA v3 score"
     assert score >= 0.7, f"reCAPTCHA v3 score too low: {score}"
+
+
+async def _wait_for_recaptcha_score_or_skip(page) -> None:
+    try:
+        await page.wait_for_function(
+            """() => /"score":\\s*\\d+\\.\\d+/.test(document.body.innerText)""",
+            timeout=45_000,
+        )
+    except Exception as exc:  # noqa: BLE001 - patchright has its own TimeoutError type
+        if exc.__class__.__name__ != "TimeoutError":
+            raise
+        text = await page.evaluate("() => document.body.innerText")
+        if "grecaptcha.ready() fired" in text and "grecaptcha.execute" in text:
+            pytest.skip("reCAPTCHA demo did not return a score after execute()")
+        raise
 
 
 async def test_cloudflare_turnstile_demo() -> None:
@@ -215,6 +296,143 @@ async def test_fingerprintjs_web_scraping_demo() -> None:
     assert result["flights"], "FingerprintJS: no flight data returned"
 
 
+async def test_pixelscan_audit_loads_without_explicit_block() -> None:
+    async with stealth_page() as page:
+        await page.goto("https://pixelscan.net", wait_until="domcontentloaded", timeout=60_000)
+        await page.wait_for_function(
+            """() => /pixelscan|fingerprint|bot/i.test(document.body.innerText)""",
+            timeout=30_000,
+        )
+        text = await page.evaluate("() => document.body.innerText")
+    lower = text.lower()
+    assert "pixelscan" in lower or "fingerprint" in lower, text[:500]
+    assert "access denied" not in lower and "request was blocked" not in lower, text[:500]
+
+
+async def test_browserscan_main_page_renders_fingerprint_summary() -> None:
+    async with stealth_page() as page:
+        await page.goto("https://www.browserscan.net", wait_until="networkidle", timeout=60_000)
+        await page.wait_for_function(
+            """() => /browserscan|fingerprint|browser/i.test(document.body.innerText)""",
+            timeout=30_000,
+        )
+        text = await page.evaluate("() => document.body.innerText")
+    lower = text.lower()
+    assert "browserscan" in lower
+    assert "access denied" not in lower and "request was blocked" not in lower, text[:500]
+
+
+async def test_fingerprint_scan_page_renders_score_surface() -> None:
+    async with stealth_page() as page:
+        await page.goto("https://fingerprint-scan.com", wait_until="networkidle", timeout=60_000)
+        await page.wait_for_function(
+            """() => /fingerprint|scan|score/i.test(document.body.innerText)""",
+            timeout=30_000,
+        )
+        text = await page.evaluate("() => document.body.innerText")
+    lower = text.lower()
+    assert "fingerprint" in lower
+    assert "webdriver true" not in lower and "headlesschrome" not in lower, text[:500]
+
+
+async def test_browserleaks_webrtc_policy_hides_private_candidates() -> None:
+    async with stealth_page() as page:
+        await page.goto("https://browserleaks.com/webrtc", wait_until="networkidle", timeout=60_000)
+        await page.wait_for_function(
+            """() => /webrtc|rtcpeerconnection|candidate/i.test(document.body.innerText)""",
+            timeout=30_000,
+        )
+        text = await page.evaluate("() => document.body.innerText")
+    assert "--webrtc-ip-handling-policy=disable_non_proxied_udp" in STEALTH.launch_options()["args"]
+    assert _private_candidate_ips(text) == [], text[:1000]
+
+
+async def test_browserleaks_client_hints_no_headless_ua() -> None:
+    async with stealth_page() as page:
+        await page.goto(
+            "https://browserleaks.com/client-hints",
+            wait_until="networkidle",
+            timeout=60_000,
+        )
+        await page.wait_for_function(
+            """() => /client hints|sec-ch-ua|user-agent/i.test(document.body.innerText)""",
+            timeout=30_000,
+        )
+        text = await page.evaluate("() => document.body.innerText")
+    assert "HeadlessChrome" not in text
+    assert "Sec-CH-UA" in text or "Client Hints" in text
+
+
+async def test_browserleaks_tls_reports_fingerprint_surface() -> None:
+    async with stealth_page() as page:
+        await page.goto("https://tls.browserleaks.com", wait_until="networkidle", timeout=60_000)
+        await page.wait_for_function(
+            """() => /tls|ja3|ja4|fingerprint/i.test(document.body.innerText)""",
+            timeout=30_000,
+        )
+        text = await page.evaluate("() => document.body.innerText")
+    lower = text.lower()
+    assert "tls" in lower
+    assert "ja3" in lower or "ja4" in lower or "fingerprint" in lower
+
+
+async def test_tls_ja3_visibility_and_proxy_consistency() -> None:
+    async with stealth_page() as page:
+        http_ip = await _json_body(page, "https://httpbingo.org/ip")
+        tls_report = await _json_body(page, "https://tls.peet.ws/api/all")
+
+    origin = str(http_ip.get("origin", "")).split(",")[0].strip()
+    tls_ip = str(tls_report.get("ip", "")).strip()
+    assert origin, http_ip
+    assert tls_ip, tls_report
+    assert "ja3" in str(tls_report).lower() or "ja4" in str(tls_report).lower()
+    if STEALTH.proxy:
+        assert origin == tls_ip, f"proxy mismatch: http={origin}, tls={tls_ip}"
+
+
+async def test_dns_leak_surface_renders() -> None:
+    async with stealth_page() as page:
+        await page.goto("https://dnsleaktest.com", wait_until="domcontentloaded", timeout=60_000)
+        await page.wait_for_function(
+            """() => /dns leak test/i.test(document.title) ||
+                /what is a dns leak|webrtc leak test|standard test|extended test/i
+                    .test(document.body.innerText)""",
+            timeout=30_000,
+        )
+        text = await page.evaluate("() => document.body.innerText")
+    assert "dns leak" in text.lower() or "webrtc leak test" in text.lower(), text[:1000]
+
+
+async def test_dns_standard_test_resolvers_are_public_and_proxy_consistent() -> None:
+    async with stealth_page() as page:
+        await page.goto("https://dnsleaktest.com", wait_until="domcontentloaded", timeout=60_000)
+        await page.get_by_role("button", name="Standard test").click(timeout=10_000)
+        await page.wait_for_function(
+            """() => /test complete/i.test(document.body.innerText) &&
+                document.querySelectorAll('table tr').length > 1""",
+            timeout=45_000,
+        )
+        text = await page.evaluate("() => document.body.innerText")
+        rows = await _dnsleaktest_rows(page)
+
+    public_ip_match = re.search(r"Your public IP:\s*((?:\d{1,3}\.){3}\d{1,3})", text)
+    public_ip = public_ip_match.group(1) if public_ip_match else ""
+    assert public_ip and _is_public_ip(public_ip), text[:1000]
+    assert rows, text[:1000]
+    resolver_ips = [row["ip"] for row in rows]
+    assert all(_is_public_ip(ip) for ip in resolver_ips), rows
+
+    expected_ip = os.environ.get("WEBSKRAP_LIVE_EXPECTED_PUBLIC_IP")
+    expected_country = os.environ.get("WEBSKRAP_LIVE_EXPECTED_COUNTRY")
+    if expected_ip:
+        assert public_ip == expected_ip, f"public IP mismatch: {public_ip} != {expected_ip}"
+    if expected_country:
+        mismatched = [row for row in rows if expected_country.lower() not in row["country"].lower()]
+        assert mismatched == [], f"DNS resolver country mismatch: {mismatched}"
+    if STEALTH.proxy and not (expected_ip or expected_country):
+        pytest.skip("set WEBSKRAP_LIVE_EXPECTED_PUBLIC_IP or WEBSKRAP_LIVE_EXPECTED_COUNTRY")
+
+
 async def test_device_and_browser_info_behavioral() -> None:
     # deviceandbrowserinfo.com behavioral detection: isBot must be false.
     async with stealth_page() as page:
@@ -244,9 +462,7 @@ async def test_device_and_browser_info_behavioral() -> None:
 async def test_bot_sannysoft() -> None:
     # bot.sannysoft.com — no detection row may be marked failed.
     async with stealth_page() as page:
-        await page.goto(
-            "https://bot.sannysoft.com", wait_until="networkidle", timeout=60_000
-        )
+        await page.goto("https://bot.sannysoft.com", wait_until="networkidle", timeout=60_000)
         await page.wait_for_timeout(4_000)
         failed = await page.evaluate(
             """() => {
@@ -267,9 +483,7 @@ async def test_bot_incolumitas() -> None:
     # bot.incolumitas.com — only network/spec false positives are tolerated.
     known_acceptable = {"WEBDRIVER", "connectionRTT"}
     async with stealth_page() as page:
-        await page.goto(
-            "https://bot.incolumitas.com", wait_until="networkidle", timeout=60_000
-        )
+        await page.goto("https://bot.incolumitas.com", wait_until="networkidle", timeout=60_000)
         await page.wait_for_timeout(13_000)
         failed = await page.evaluate(
             """() => {
