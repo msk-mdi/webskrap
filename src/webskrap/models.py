@@ -207,12 +207,11 @@ class SessionConfig(BaseModel):
         return options
 
     def _automation_args(self) -> list[str]:
-        # Real Chrome exposes navigator.webdriver=true under automation, an
-        # instant tell for detectors like DataDome. patchright's bundled
-        # Chromium hides it, but the real Chrome channel does not reliably across
-        # Chrome releases, so set the flag explicitly. Skipped if the caller
-        # already passed it.
-        if self.browser != "chromium":
+        # Standard Playwright Chrome exposes navigator.webdriver=true under
+        # automation, an instant tell for detectors like DataDome. Patchright
+        # owns this surface itself, and extra evasion flags can become signals.
+        # Skipped if the caller already passed it.
+        if self.browser != "chromium" or self.driver == "patchright":
             return []
         flag = "--disable-blink-features=AutomationControlled"
         if any(a.startswith("--disable-blink-features") for a in self.launch_args):
@@ -274,7 +273,7 @@ class SessionConfig(BaseModel):
             # real fingerprint. The default keeps the host/browser environment
             # visible. The opt-in context profile below only applies settings
             # Chrome can expose natively through BrowserContext options.
-            options: dict[str, Any] = {"no_viewport": True}
+            options: dict[str, Any] = {"no_viewport": True, "focus_control": False}
             if self.patchright_context_profile:
                 options.update(
                     {

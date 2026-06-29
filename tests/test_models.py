@@ -61,6 +61,7 @@ def test_patchright_context_omits_profile_by_default() -> None:
     options = config.context_options(profile)
 
     assert options["no_viewport"] is True
+    assert options["focus_control"] is False
     assert "user_agent" not in options
     assert "extra_http_headers" not in options
 
@@ -83,6 +84,7 @@ def test_patchright_context_profile_applies_native_context_metadata() -> None:
     options = config.context_options(profile)
 
     assert options["no_viewport"] is True
+    assert options["focus_control"] is False
     assert options["locale"] == "en-US"
     assert options["timezone_id"] == "Europe/Paris"
     assert options["color_scheme"] == "dark"
@@ -149,6 +151,11 @@ def test_non_chromium_headless_omits_simulated_screen() -> None:
 def test_chromium_disables_automation_controlled() -> None:
     args = SessionConfig(browser="chromium").launch_options()["args"]
     assert "--disable-blink-features=AutomationControlled" in args
+
+
+def test_patchright_omits_automation_controlled_flag() -> None:
+    args = SessionConfig(driver="patchright", browser="chromium").launch_options()["args"]
+    assert "--disable-blink-features=AutomationControlled" not in args
 
 
 def test_automation_flag_skipped_when_caller_sets_blink_features() -> None:

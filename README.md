@@ -128,7 +128,6 @@ async def main() -> None:
         slow_mo_ms=50,
         launch_args=[
             "--start-maximized",
-            "--disable-blink-features=AutomationControlled",
             "--no-first-run",
             "--no-default-browser-check",
         ],
@@ -191,7 +190,6 @@ config = SessionConfig(
     slow_mo_ms=50,
     launch_args=[
         "--start-maximized",
-        "--disable-blink-features=AutomationControlled",
         "--disable-dev-shm-usage",
         "--no-first-run",
         "--no-default-browser-check",
@@ -241,18 +239,21 @@ patchright install chromium
 ```
 
 ```python
+from pathlib import Path
+
 from webskrap import SessionConfig
 
 config = SessionConfig(
     driver="patchright",
     channel="chrome",          # real Chrome beats anti-detect tampering checks
     headless=False,            # headed clears headless-only behavioral signals
+    user_data_dir=Path(".webskrap/patchright-profile"),
 )
 ```
 
-With this configuration WebSkrap passes reCAPTCHA v3 (human score), Cloudflare
-Turnstile (non-interactive), BrowserScan, the FingerprintJS web-scraping demo,
-and deviceandbrowserinfo behavioral detection. See
+With this configuration WebSkrap passes reCAPTCHA v3 (human score), renders
+Cloudflare Turnstile without solving it, passes BrowserScan, the FingerprintJS
+web-scraping demo, and deviceandbrowserinfo behavioral detection. See
 [tests/test_bot_detection.py](tests/test_bot_detection.py) (run with
 `WEBSKRAP_LIVE=1`). The `patchright` driver needs Google Chrome installed and the
 `stealth` extra; without a `user_data_dir` it uses a throwaway persistent profile,
@@ -280,8 +281,8 @@ WebSkrap values are from the local live report generated on 2026-06-26 with
 | Feature | Playwright | playwright-stealth | undetected-chromedriver | Camoufox | CloakBrowser | WebSkrap patchright |
 |---|---|---|---|---|---|---|
 | reCAPTCHA v3 score | 0.1 | 0.3-0.5 | 0.3-0.7 | 0.7-0.9 | **0.9** | Pass in headed mode (`>=0.7` gate) |
-| Cloudflare Turnstile | Fail | Sometimes | Sometimes | Pass | **Pass** | Pass headed; renders headless |
-| Patch level | None | JS injection | Config patches | C++ (Firefox) | **C++ (Chromium)** | Patchright browser driver + Chrome flags |
+| Cloudflare Turnstile | Fail | Sometimes | Sometimes | Pass | **Pass** | Renders challenge surface |
+| Patch level | None | JS injection | Config patches | C++ (Firefox) | **C++ (Chromium)** | Patchright browser driver + native Chrome options |
 | Survives Chrome updates | N/A | Breaks often | Breaks often | Yes | **Yes** | Depends on Chrome + Patchright compatibility |
 | Maintained | Yes | Stale | Stale | Unstable | **Active** | Active project tests |
 | Browser engine | Chromium | Chromium | Chrome | Firefox | **Chromium** | Chrome/Chromium |
@@ -290,7 +291,7 @@ WebSkrap values are from the local live report generated on 2026-06-26 with
 | Detection Service | Stock Playwright | CloakBrowser | WebSkrap patchright headed | Notes |
 |---|---|---|---|---|
 | **reCAPTCHA v3** | 0.1 (bot) | **0.9** (human) | **PASS** | WebSkrap asserts score `>=0.7` when Google's demo returns one |
-| **Cloudflare Turnstile** (non-interactive) | FAIL | **PASS** | **PASS** | Public demo returns a token and success JSON |
+| **Cloudflare Turnstile** (non-interactive) | FAIL | **PASS** | **PASS** | Public demo renders the challenge surface; WebSkrap does not solve it |
 | **FingerprintJS** bot detection | DETECTED | **PASS** | **PASS** | `demo.fingerprint.com/web-scraping` returns demo data |
 | **BrowserScan** bot detection | DETECTED | **NORMAL** (4/4) | **PASS** | 0 abnormal checks in headed run |
 | **bot.incolumitas.com** | 13 fails | **1 fail** | **PASS** | Only tolerated network/spec false positives |
@@ -366,10 +367,12 @@ webskrap profiles
 webskrap doctor
 webskrap fetch https://example.com --profile desktop-chrome
 webskrap fetch https://example.com --headed --screenshot example.png
-webskrap fetch https://example.com --driver patchright --channel chrome --headed
+webskrap fetch https://example.com --driver patchright --channel chrome --headed \
+  --user-data-dir .webskrap/patchright-profile
 webskrap fetch https://amiunique.org/fr/fingerprint \
   --driver patchright \
   --channel chrome \
+  --mask-headless-user-agent \
   --patchright-context-profile \
   --reduce-fingerprint-surface \
   --webrtc-ip-handling-policy disable_non_proxied_udp

@@ -158,9 +158,8 @@ async def test_recaptcha_v3() -> None:
 
 
 async def test_cloudflare_turnstile_demo() -> None:
-    # The public demo uses Cloudflare's testing key. Click the visible Turnstile
-    # frame when Cloudflare asks for interaction, submit the form, then verify
-    # the demo renders Cloudflare's success JSON.
+    # Verify the public demo renders the Turnstile surface. WebSkrap does not
+    # solve or submit CAPTCHA challenges.
     async with stealth_page() as page:
         await page.goto(
             "https://2captcha.com/demo/cloudflare-turnstile",
@@ -177,49 +176,19 @@ async def test_cloudflare_turnstile_demo() -> None:
             }""",
             timeout=45_000,
         )
-        token = ""
-        clicked_frame = False
-        for _ in range(30):
-            token = await page.evaluate(
-                """() => {
-                    const el = document.querySelector(
-                        'input[name="cf-turnstile-response"]'
-                    );
-                    return el ? el.value : "";
-                }"""
-            )
-            if token and len(token) > 20:
-                break
-            turnstile_frame = next(
-                (frame for frame in page.frames if "challenges.cloudflare.com" in frame.url),
-                None,
-            )
-            if turnstile_frame is not None and not clicked_frame:
-                await turnstile_frame.locator("body").click(timeout=10_000)
-                clicked_frame = True
-            await page.wait_for_timeout(1_000)
-        await page.locator('button[data-action="demo_action"]').click(timeout=10_000)
-        await page.wait_for_function(
-            """() => document.body.innerText.includes('"success": true')""",
-            timeout=15_000,
-        )
         result = await page.evaluate(
             """() => {
-                const el = document.querySelector(
+                const widget = document.querySelector('.cf-turnstile');
+                const response = document.querySelector(
                     'input[name="cf-turnstile-response"]'
                 );
-                const successCode = [...document.querySelectorAll('code')]
-                    .map((el) => el.innerText)
-                    .find((text) => text.includes('"success": true')) || "";
+                const iframe = document.querySelector('iframe[src*="turnstile"]');
                 return {
-                    token: el ? el.value : "",
-                    successCode,
+                    hasSurface: Boolean(widget || response || iframe),
                 };
             }"""
         )
-    assert token and len(token) > 20, "Turnstile token missing before form submit"
-    assert result["token"] and len(result["token"]) > 20, f"Turnstile token missing: {result}"
-    assert '"success": true' in result["successCode"], f"Turnstile success JSON missing: {result}"
+    assert result["hasSurface"], "Turnstile surface did not render"
 
 
 async def test_browserscan_bot_detection() -> None:

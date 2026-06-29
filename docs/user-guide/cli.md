@@ -31,14 +31,17 @@ webskrap fetch https://example.com --headed
 ## Patchright driver
 
 ```bash
-webskrap fetch https://example.com --driver patchright --channel chrome --headed
+webskrap fetch https://example.com --driver patchright --channel chrome --headed \
+  --user-data-dir .webskrap/patchright-profile
 ```
 
 Use headed Patchright with real Chrome for the strict stealth path. Headless
 Patchright is best-effort:
 
 ```bash
-webskrap fetch https://example.com --driver patchright --channel chrome
+webskrap fetch https://example.com --driver patchright --channel chrome \
+  --user-data-dir .webskrap/headless-profile \
+  --mask-headless-user-agent
 ```
 
 For fingerprint-statistics or WebRTC leak-test pages, apply profile
@@ -49,6 +52,7 @@ without viewport, user-agent, or JavaScript patches:
 webskrap fetch https://amiunique.org/fr/fingerprint \
   --driver patchright \
   --channel chrome \
+  --mask-headless-user-agent \
   --patchright-context-profile \
   --reduce-fingerprint-surface \
   --webrtc-ip-handling-policy disable_non_proxied_udp
@@ -96,9 +100,11 @@ webskrap fetch https://example.com --resource-policy documents -o page.html
 
 ```bash
 webskrap fetch https://example.com \
-  --driver playwright \
+  --driver patchright \
   --profile desktop-chrome \
   --channel chrome \
+  --user-data-dir .webskrap/profile \
+  --mask-headless-user-agent \
   --resource-policy lite \
   --patchright-context-profile \
   --reduce-fingerprint-surface \

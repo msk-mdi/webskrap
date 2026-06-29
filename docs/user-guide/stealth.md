@@ -30,7 +30,8 @@ config = SessionConfig(
 
 Patchright works best with real Chrome and a persistent context. If
 `user_data_dir` is omitted, WebSkrap creates a temporary persistent profile for
-Patchright sessions.
+Patchright sessions. Patchright contexts use the browser's real viewport and
+disable synthetic focus control (`no_viewport=True`, `focus_control=False`).
 
 ## Context profile mode
 

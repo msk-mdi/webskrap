@@ -85,6 +85,10 @@ def fetch_command(
         str | None,
         typer.Option("--channel", help="Browser channel, e.g. chrome."),
     ] = None,
+    user_data_dir: Annotated[
+        Path | None,
+        typer.Option("--user-data-dir", help="Persistent browser profile directory."),
+    ] = None,
     screenshot: Annotated[
         Path | None,
         typer.Option("--screenshot", help="Write a full-page screenshot to this path."),
@@ -119,6 +123,13 @@ def fetch_command(
             help="Disable Chromium WebGL and canvas readback with native browser flags.",
         ),
     ] = False,
+    mask_headless_user_agent: Annotated[
+        bool,
+        typer.Option(
+            "--mask-headless-user-agent",
+            help="Rewrite HeadlessChrome to Chrome via Chromium's user-agent flag.",
+        ),
+    ] = False,
     launch_args: Annotated[
         list[str] | None,
         typer.Option(
@@ -144,6 +155,7 @@ def fetch_command(
             headed=headed,
             driver=driver,
             channel=channel,
+            user_data_dir=user_data_dir,
             screenshot=screenshot,
             output=output,
             wait_until=wait_until,
@@ -151,6 +163,7 @@ def fetch_command(
             resource_policy=resource_policy,
             patchright_context_profile=patchright_context_profile,
             reduce_fingerprint_surface=reduce_fingerprint_surface,
+            mask_headless_user_agent=mask_headless_user_agent,
             launch_args=launch_args or [],
             webrtc_ip_handling_policy=webrtc_ip_handling_policy,
         )
@@ -164,6 +177,7 @@ async def _fetch(
     headed: bool,
     driver: str,
     channel: str | None,
+    user_data_dir: Path | None,
     screenshot: Path | None,
     output: Path | None,
     wait_until: str,
@@ -171,6 +185,7 @@ async def _fetch(
     resource_policy: ResourcePolicy,
     patchright_context_profile: bool,
     reduce_fingerprint_surface: bool,
+    mask_headless_user_agent: bool,
     launch_args: list[str],
     webrtc_ip_handling_policy: str | None,
 ) -> None:
@@ -179,10 +194,12 @@ async def _fetch(
         driver=_parse_driver(driver),
         headless=not headed,
         channel=channel,
+        user_data_dir=user_data_dir,
         navigation_timeout_ms=timeout_ms,
         resource_policy=resource_policy,
         patchright_context_profile=patchright_context_profile,
         reduce_fingerprint_surface=reduce_fingerprint_surface,
+        mask_headless_user_agent=mask_headless_user_agent,
         launch_args=launch_args,
         webrtc_ip_handling_policy=_parse_webrtc_ip_handling_policy(webrtc_ip_handling_policy),
     )

@@ -96,7 +96,7 @@ browser controls match the task.
 webskrap doctor
 webskrap profiles
 webskrap fetch https://example.com --output page.html --resource-policy lite
-webskrap fetch https://example.com --driver patchright --channel chrome --headed
+webskrap fetch https://example.com --driver patchright --channel chrome --headed --user-data-dir .webskrap/patchright-profile
 webskrap-mcp
 ```
 

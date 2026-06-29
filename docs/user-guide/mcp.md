@@ -115,8 +115,9 @@ patchright install chromium
 ```
 
 It accepts the same controls as the [Stealth](stealth.md) guide, including
-`channel`, `headless`, `patchright_context_profile`, `reduce_fingerprint_surface`,
-`mask_headless_user_agent`, and `webrtc_ip_handling_policy`.
+`channel`, `headless`, `user_data_dir`, `patchright_context_profile`,
+`reduce_fingerprint_surface`, `mask_headless_user_agent`, and
+`webrtc_ip_handling_policy`.
 
 For headless best-effort stealth from MCP, use real Chrome and opt in only to the
 native browser controls you need:
@@ -126,6 +127,7 @@ native browser controls you need:
   "url": "https://example.com",
   "channel": "chrome",
   "headless": true,
+  "user_data_dir": ".webskrap/headless-profile",
   "mask_headless_user_agent": true,
   "patchright_context_profile": true,
   "webrtc_ip_handling_policy": "disable_non_proxied_udp"

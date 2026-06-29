@@ -7,6 +7,7 @@ Code, ...) at that command to drive scraping through the tools below.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from webskrap.client import WebSkrapClient, WebSkrapError
@@ -84,6 +85,7 @@ async def stealth_fetch(
     profile: str = "desktop-chrome",
     channel: str = "chrome",
     headless: bool = True,
+    user_data_dir: str | None = None,
     patchright_context_profile: bool = False,
     reduce_fingerprint_surface: bool = False,
     mask_headless_user_agent: bool = False,
@@ -102,6 +104,7 @@ async def stealth_fetch(
         profile: Bundled profile applied when patchright_context_profile is set.
         channel: Browser channel, e.g. chrome.
         headless: Run headless. Headed is more robust against detection.
+        user_data_dir: Persistent browser profile directory.
         patchright_context_profile: Apply locale/timezone/media profile metadata.
         reduce_fingerprint_surface: Disable WebGL and canvas readback via flags.
         mask_headless_user_agent: Rewrite the HeadlessChrome UA token to Chrome.
@@ -114,6 +117,7 @@ async def stealth_fetch(
         driver="patchright",
         channel=channel,
         headless=headless,
+        user_data_dir=Path(user_data_dir) if user_data_dir else None,
         navigation_timeout_ms=timeout_ms,
         patchright_context_profile=patchright_context_profile,
         reduce_fingerprint_surface=reduce_fingerprint_surface,
