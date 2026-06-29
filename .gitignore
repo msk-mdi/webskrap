@@ -13,4 +13,5 @@ site/
 .webskrap/
 test.py
 AGENTS.md
+CLAUDE.md
 .cache

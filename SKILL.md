@@ -223,7 +223,6 @@ For code changes, run the focused checks relevant to the edit:
 ```bash
 pytest -q
 ruff check .
-zensical build
 ```
 
 Use `WEBSKRAP_LIVE=1 pytest -q -m live` only for opt-in third-party bot-detection tests. Those tests are slower and may fail when public demos change.

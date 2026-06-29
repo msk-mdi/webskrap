@@ -11,7 +11,7 @@
 
 WebSkrap does not include CAPTCHA solving, login-wall bypassing, credential bypassing, or access-control circumvention. Use it only on targets you are allowed to access.
 
-Documentation: https://kacigaya.github.io/webskrap/
+Documentation: Next.js site in [`web/`](web/) (sources in [`web/content`](web/content)).
 
 ## Install
 
