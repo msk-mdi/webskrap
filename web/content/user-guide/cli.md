@@ -2,16 +2,31 @@
 
 WebSkrap installs the `webskrap` command.
 
+## Install browsers
+
+```bash
+webskrap install
+webskrap install --format json
+```
+
+`webskrap install` downloads the Chromium browsers used by Playwright and
+Patchright. Use JSON output in scripts.
+
 ## Check environment
 
 ```bash
 webskrap doctor
+webskrap doctor --format json
 ```
+
+The CLI `fetch` command uses headless Patchright stealth mode, so `doctor`
+checks that Patchright can launch headless Chrome.
 
 ## List profiles
 
 ```bash
 webskrap profiles
+webskrap profiles --format json
 ```
 
 ## Fetch a page
@@ -20,56 +35,42 @@ webskrap profiles
 webskrap fetch https://example.com
 ```
 
-The command prints status, final URL, title, and any artifact paths.
+The default human output prints status, final URL, title, and artifact paths.
 
-## Headed browser
-
-```bash
-webskrap fetch https://example.com --headed
-```
-
-## Patchright driver
+For LLMs and shell automation, use JSON:
 
 ```bash
-webskrap fetch https://example.com --driver patchright --channel chrome --headed \
-  --user-data-dir .webskrap/patchright-profile
+webskrap fetch https://example.com --format json --max-chars 12000
 ```
 
-Use headed Patchright with real Chrome for the strict stealth path. Headless
-Patchright is best-effort:
+JSON output includes `url`, `final_url`, `status`, `ok`, `title`, `headers`,
+`text`, `text_length`, `text_truncated`, and `elapsed_ms`.
+
+## Text and stdout
+
+Print raw fetched content to stdout:
 
 ```bash
-webskrap fetch https://example.com --driver patchright --channel chrome \
-  --user-data-dir .webskrap/headless-profile \
-  --mask-headless-user-agent
+webskrap fetch https://example.com --stdout
 ```
 
-For fingerprint-statistics or WebRTC leak-test pages, apply profile
-locale/timezone/media metadata and block non-proxied WebRTC UDP candidates
-without viewport, user-agent, or JavaScript patches:
+Return readable body text instead of HTML:
 
 ```bash
-webskrap fetch https://amiunique.org/fr/fingerprint \
-  --driver patchright \
-  --channel chrome \
-  --mask-headless-user-agent \
-  --patchright-context-profile \
-  --reduce-fingerprint-surface \
-  --webrtc-ip-handling-policy disable_non_proxied_udp
+webskrap fetch https://example.com --stdout --text-only
+webskrap fetch https://example.com --format json --text-only
 ```
 
-Pass additional browser flags with repeated `--launch-arg=...` options. Use the
-equals form when the browser flag itself starts with `--`.
+Suppress the human summary when writing artifacts:
 
-## Screenshot
+```bash
+webskrap fetch https://example.com --quiet --output example.html
+```
+
+## Screenshot and output
 
 ```bash
 webskrap fetch https://example.com --screenshot example.png
-```
-
-## Save HTML
-
-```bash
 webskrap fetch https://example.com --output example.html
 webskrap fetch https://example.com -o example.html --screenshot example.png
 ```
@@ -96,32 +97,36 @@ webskrap fetch https://example.com --resource-policy documents -o page.html
 
 `lite` blocks images, fonts, and media. `documents` also blocks stylesheets.
 
-## Options
+## Headless Patchright controls
+
+`webskrap fetch` always runs headless Patchright. Use real Chrome and a stable
+profile directory when browser continuity matters:
 
 ```bash
 webskrap fetch https://example.com \
-  --driver patchright \
-  --profile desktop-chrome \
   --channel chrome \
-  --user-data-dir .webskrap/profile \
+  --user-data-dir .webskrap/headless-profile \
+  --mask-headless-user-agent
+```
+
+For fingerprint-statistics or WebRTC leak-test pages, apply profile
+locale/timezone/media metadata and block non-proxied WebRTC UDP candidates
+without viewport, user-agent, or JavaScript patches:
+
+```bash
+webskrap fetch https://amiunique.org/fr/fingerprint \
+  --channel chrome \
   --mask-headless-user-agent \
-  --resource-policy lite \
   --patchright-context-profile \
   --reduce-fingerprint-surface \
-  --webrtc-ip-handling-policy disable_non_proxied_udp \
-  --timeout-ms 90000
+  --webrtc-ip-handling-policy disable_non_proxied_udp
 ```
 
-## Launch arguments
-
-Repeat `--launch-arg` for advanced browser flags:
+Pass additional browser flags with repeated `--launch-arg=...` options. Use the
+equals form when the browser flag itself starts with `--`.
 
 ```bash
 webskrap fetch https://example.com \
-  --headed \
-  --launch-arg=--start-maximized \
-  --launch-arg=--no-first-run
+  --launch-arg=--no-first-run \
+  --launch-arg=--no-default-browser-check
 ```
-
-Use the equals form shown above so shell parsing keeps the browser flag attached
-to the Typer option.

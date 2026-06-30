@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from typing import Any
 
 from typer.testing import CliRunner
@@ -135,3 +136,76 @@ def test_doctor_json_failure(monkeypatch: Any) -> None:
 
     assert result.exit_code == 1
     assert json.loads(result.output) == {"ok": False, "message": "broken", "hint": "fix it"}
+
+
+def test_install_json_success(monkeypatch: Any) -> None:
+    calls: list[tuple[str, ...]] = []
+
+    def fake_run(command: tuple[str, ...], **_kwargs: Any) -> subprocess.CompletedProcess[str]:
+        calls.append(command)
+        return subprocess.CompletedProcess(command, 0, stdout="installed", stderr="")
+
+    monkeypatch.setattr(cli.subprocess, "run", fake_run)
+
+    result = runner.invoke(cli.app, ["install", "--format", "json"])
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.output)
+    assert payload["ok"] is True
+    assert [tuple(step["command"]) for step in payload["steps"]] == list(cli.INSTALL_COMMANDS)
+    assert calls == list(cli.INSTALL_COMMANDS)
+
+
+def test_install_json_failure(monkeypatch: Any) -> None:
+    def fake_run(command: tuple[str, ...], **_kwargs: Any) -> subprocess.CompletedProcess[str]:
+        return_code = 1 if command[0] == "patchright" else 0
+        return subprocess.CompletedProcess(
+            command,
+            return_code,
+            stdout="",
+            stderr="missing browser",
+        )
+
+    monkeypatch.setattr(cli.subprocess, "run", fake_run)
+
+    result = runner.invoke(cli.app, ["install", "--format", "json"])
+
+    assert result.exit_code == 1
+    payload = json.loads(result.output)
+    assert payload["ok"] is False
+    assert payload["steps"][0]["ok"] is True
+    assert payload["steps"][1]["ok"] is False
+    assert payload["steps"][1]["message"] == "missing browser"
+
+
+def test_install_json_handles_missing_executable(monkeypatch: Any) -> None:
+    def fake_run(command: tuple[str, ...], **_kwargs: Any) -> subprocess.CompletedProcess[str]:
+        if command[0] == "patchright":
+            raise FileNotFoundError("missing patchright")
+        return subprocess.CompletedProcess(command, 0, stdout="installed", stderr="")
+
+    monkeypatch.setattr(cli.subprocess, "run", fake_run)
+
+    result = runner.invoke(cli.app, ["install", "--format", "json"])
+
+    assert result.exit_code == 1
+    payload = json.loads(result.output)
+    assert payload["ok"] is False
+    assert payload["steps"][1]["ok"] is False
+    assert payload["steps"][1]["message"] == "missing patchright"
+
+
+def test_install_human_output(monkeypatch: Any) -> None:
+    def fake_run(command: tuple[str, ...], **_kwargs: Any) -> subprocess.CompletedProcess[str]:
+        return subprocess.CompletedProcess(command, 0, stdout="installed", stderr="")
+
+    monkeypatch.setattr(cli.subprocess, "run", fake_run)
+
+    result = runner.invoke(cli.app, ["install"])
+
+    assert result.exit_code == 0, result.output
+    assert "OK:" in result.output
+    assert "playwright" in result.output
+    assert "install" in result.output
+    assert "chromium" in result.output
+    assert "patchright install chromium" in result.output

@@ -37,7 +37,7 @@ Install normal API/browser support:
 
 ```bash
 pip install webskrap
-python -m playwright install chromium
+webskrap install
 ```
 
 Use `WebSkrapClient` as an async context manager. Use `client.fetch()` for a
@@ -60,13 +60,8 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-The Python API defaults to Playwright. For Patchright, opt in through
-`SessionConfig`:
-
-```bash
-pip install "webskrap[stealth]"
-patchright install chromium
-```
+The Python API defaults to Playwright. `pip install webskrap` includes Patchright
+and MCP dependencies. For Patchright, opt in through `SessionConfig`:
 
 ```python
 from pathlib import Path
@@ -104,12 +99,13 @@ config = SessionConfig(
 
 ## CLI
 
-The CLI `fetch` command always uses headless Patchright stealth mode. Install
-the stealth extra first; `webskrap doctor` checks this CLI setup.
+The CLI `fetch` command always uses headless Patchright stealth mode.
+`webskrap install` downloads Playwright and Patchright Chromium browsers;
+`webskrap doctor` checks this CLI setup.
 
 ```bash
-pip install "webskrap[stealth]"
-patchright install chromium
+pip install webskrap
+webskrap install
 
 webskrap doctor
 webskrap doctor --format json
@@ -133,16 +129,15 @@ readable body text.
 Install MCP support when an MCP client should call WebSkrap directly:
 
 ```bash
-pip install "webskrap[mcp]"
-python -m playwright install chromium
+pip install webskrap
+webskrap install
 webskrap-mcp
 ```
 
 MCP tools:
 
 - `fetch`: standard Playwright fetch.
-- `stealth_fetch`: Patchright fetch; requires `pip install "webskrap[mcp,stealth]"`
-  and `patchright install chromium`.
+- `stealth_fetch`: Patchright fetch.
 - `doctor`: Playwright/Chromium MCP readiness check.
 
 ## Validation

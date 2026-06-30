@@ -6,10 +6,10 @@ Install WebSkrap from PyPI:
 pip install webskrap
 ```
 
-Install Playwright's Chromium browser:
+Download the browser binaries used by Playwright and Patchright:
 
 ```bash
-python -m playwright install chromium
+webskrap install
 ```
 
 Verify the installation:
@@ -19,20 +19,22 @@ webskrap doctor
 webskrap profiles
 ```
 
-## Optional extras
+## Included by default
 
-Install only the extras you need:
+`pip install webskrap` includes the Python dependencies for:
+
+- Playwright browser automation.
+- Patchright stealth sessions.
+- The `webskrap-mcp` server.
+
+The legacy extras `webskrap[stealth]` and `webskrap[mcp]` still install, but
+they are no longer required.
+
+Use machine-readable setup output in automation:
 
 ```bash
-pip install "webskrap[stealth]"      # Patchright driver
-pip install "webskrap[mcp]"          # MCP stdio server
-pip install "webskrap[mcp,stealth]"  # MCP plus stealth_fetch
-```
-
-Patchright uses its own browser install:
-
-```bash
-patchright install chromium
+webskrap install --format json
+webskrap doctor --format json
 ```
 
 ## Development install
@@ -42,8 +44,8 @@ For local development:
 ```bash
 git clone https://github.com/kacigaya/webskrap.git
 cd webskrap
-pip install -e ".[dev,docs]"
-python -m playwright install chromium
+pip install -e ".[dev]"
+webskrap install
 ```
 
 Run checks:
@@ -51,7 +53,7 @@ Run checks:
 ```bash
 pytest -q
 ruff check .
-zensical build
+(cd web && bun run build)
 ```
 
 If you use `uv`, the same checks can run through the project environment:
@@ -59,5 +61,4 @@ If you use `uv`, the same checks can run through the project environment:
 ```bash
 uv run pytest -q
 uv run ruff check .
-uv run zensical build
 ```

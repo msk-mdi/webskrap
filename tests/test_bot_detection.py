@@ -25,8 +25,7 @@ with a persistent Chrome profile:
 
 Compare this strict headed suite with ``test_bot_detection_headless.py`` for the
 current headless baseline. Requires Google Chrome installed on the host and the
-optional stealth extra (``pip install webskrap[stealth]`` plus
-``patchright install chromium``).
+Patchright browser download (``webskrap install``).
 """
 
 from __future__ import annotations

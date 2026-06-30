@@ -1,6 +1,6 @@
 """Model Context Protocol server exposing WebSkrap over stdio.
 
-Run with ``webskrap-mcp`` (after ``pip install webskrap[mcp]``) or
+Run with ``webskrap-mcp`` (after ``pip install webskrap``) or
 ``python -m webskrap.mcp_server``. Point an MCP client (Claude Desktop, Claude
 Code, ...) at that command to drive scraping through the tools below.
 """
@@ -22,7 +22,7 @@ from webskrap.profiles import get_profile
 try:
     from mcp.server.fastmcp import FastMCP
 except ImportError as exc:  # pragma: no cover - optional dependency
-    msg = "the MCP server requires the optional dependency: pip install webskrap[mcp]"
+    msg = "the MCP server requires mcp. Run: pip install webskrap"
     raise WebSkrapError(msg) from exc
 
 mcp = FastMCP("webskrap")
@@ -78,9 +78,8 @@ async def stealth_fetch(
 ) -> dict[str, Any]:
     """Fetch a URL with the Patchright stealth driver (CDP-leak-free).
 
-    Requires the optional stealth extra: pip install webskrap[stealth] and
-    patchright install chromium. Prefer headless=False with channel="chrome"
-    for the strictest anti-bot path.
+    Requires Patchright's browser download: webskrap install. Prefer
+    headless=False with channel="chrome" for the strictest anti-bot path.
 
     Args:
         url: The URL to load.
@@ -135,7 +134,7 @@ async def doctor() -> dict[str, Any]:
         return {
             "ok": False,
             "message": f"Chromium did not launch: {exc}",
-            "hint": "Run: python -m playwright install chromium",
+            "hint": "Run: webskrap install",
         }
 
     return {"ok": True, "message": "Playwright and Chromium are ready."}

@@ -61,8 +61,8 @@ or less reliable than `domcontentloaded` plus an explicit page wait in a session
 
 ### Screenshots and output
 
-The Python API returns the page HTML in `result.text`. Write it with normal file
-operations when you need an artifact:
+The Python API returns page HTML in `result.text` by default. Pass
+`text_only=True` when you want readable body text instead:
 
 ```python
 from pathlib import Path
@@ -70,6 +70,9 @@ from pathlib import Path
 result = await client.fetch("https://example.com", screenshot="example.png")
 Path("example.html").write_text(result.text, encoding="utf-8")
 print(result.screenshot_path)
+
+text_result = await client.fetch("https://example.com", text_only=True)
+print(text_result.text)
 ```
 
 Pass `screenshot=True` to let WebSkrap choose a timestamped file name in the

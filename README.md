@@ -17,7 +17,7 @@ Documentation: [https://kacigaya.github.io/webskrap/](https://kacigaya.github.io
 
 ```bash
 pip install webskrap
-python -m playwright install chromium
+webskrap install
 ```
 
 ## Quickstart
@@ -233,10 +233,8 @@ the [`patchright`](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright) driver, a
 CDP-leak-free Playwright fork, and let the browser's real fingerprint show through.
 WebSkrap does not inject JavaScript stealth patches.
 
-```bash
-pip install "webskrap[stealth]"
-patchright install chromium
-```
+`pip install webskrap` includes Patchright. Run `webskrap install` to download
+browser binaries.
 
 ```python
 from pathlib import Path
@@ -362,12 +360,12 @@ flags, but pages that need WebGL or canvas export may not work correctly.
 
 ## CLI
 
-`webskrap fetch` always runs headless Patchright stealth mode. Install the
-stealth extra before using it. `webskrap doctor` verifies this CLI setup.
+`webskrap fetch` always runs headless Patchright stealth mode. `webskrap install`
+downloads the browser binaries, and `webskrap doctor` verifies this CLI setup.
 
 ```bash
-pip install "webskrap[stealth]"
-patchright install chromium
+pip install webskrap
+webskrap install
 ```
 
 ```bash
@@ -398,8 +396,8 @@ Desktop, Claude Code, ...) can drive scraping directly. It exposes three tools
 over stdio: `fetch`, `stealth_fetch`, and `doctor`.
 
 ```bash
-pip install "webskrap[mcp]"
-python -m playwright install chromium
+pip install webskrap
+webskrap install
 webskrap-mcp
 ```
 
@@ -431,8 +429,8 @@ command = "webskrap-mcp"
 args = []
 ```
 
-`stealth_fetch` also needs the `stealth` extra (`pip install "webskrap[mcp,stealth]"`
-and `patchright install chromium`).
+The legacy extras `webskrap[mcp]` and `webskrap[stealth]` remain accepted for
+older install snippets, but MCP and Patchright are included by default.
 
 ## Performance benchmarks
 

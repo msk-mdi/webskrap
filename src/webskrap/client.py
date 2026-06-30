@@ -21,17 +21,14 @@ def _async_playwright(driver: str):
 
     ``patchright`` is a drop-in, API-compatible fork of Playwright that hides the
     CDP ``Runtime.enable`` leak used by CDP-aware bot detectors. It requires the
-    optional ``stealth`` extra (``pip install webskrap[stealth]``) and its own
-    browser download (``patchright install chromium``).
+    ``patchright`` ships with WebSkrap, but needs its browser download
+    (``webskrap install``).
     """
     if driver == "patchright":
         try:
             from patchright.async_api import async_playwright
         except ImportError as exc:  # pragma: no cover - optional dependency
-            msg = (
-                "driver='patchright' requires the optional dependency: "
-                "pip install webskrap[stealth] && patchright install chromium"
-            )
+            msg = "driver='patchright' requires patchright. Run: pip install webskrap"
             raise WebSkrapError(msg) from exc
         return async_playwright()
     from playwright.async_api import async_playwright

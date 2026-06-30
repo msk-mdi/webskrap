@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import subprocess
+import sys
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -26,6 +28,29 @@ from webskrap.profiles import get_profile, list_profiles
 app = typer.Typer(help="WebSkrap browser scraping toolkit.")
 console = Console()
 OutputFormat = Literal["human", "json"]
+INSTALL_COMMANDS = (
+    (sys.executable, "-m", "playwright", "install", "chromium"),
+    ("patchright", "install", "chromium"),
+)
+
+
+@app.command("install")
+def install_command(
+    format: Annotated[
+        str,
+        typer.Option("--format", help="Output format: human or json."),
+    ] = "human",
+) -> None:
+    output_format = _parse_output_format(format)
+    results = [_run_install_command(command) for command in INSTALL_COMMANDS]
+    ok = all(result["ok"] for result in results)
+    payload = {"ok": ok, "steps": results}
+    if output_format == "json":
+        _print_json(payload)
+    else:
+        _print_install_result(results)
+    if not ok:
+        raise typer.Exit(code=1)
 
 
 @app.command("profiles")
@@ -84,7 +109,7 @@ async def _doctor() -> dict[str, object]:
         return {
             "ok": False,
             "message": f"Patchright import failed: {exc}",
-            "hint": 'Run: pip install "webskrap[stealth]" && patchright install chromium',
+            "hint": "Run: webskrap install",
         }
 
     try:
@@ -97,7 +122,7 @@ async def _doctor() -> dict[str, object]:
         return {
             "ok": False,
             "message": f"Patchright headless Chrome did not launch: {exc}",
-            "hint": 'Run: pip install "webskrap[stealth]" && patchright install chromium',
+            "hint": "Run: webskrap install",
         }
 
     return {"ok": True, "message": "Patchright headless Chrome is ready."}
@@ -319,6 +344,34 @@ def _parse_output_format(value: str) -> OutputFormat:
 
 def _print_json(payload: object) -> None:
     typer.echo(json.dumps(payload, ensure_ascii=False))
+
+
+def _run_install_command(command: tuple[str, ...]) -> dict[str, object]:
+    try:
+        completed = subprocess.run(command, capture_output=True, text=True, check=False)
+    except OSError as exc:
+        return {
+            "ok": False,
+            "command": list(command),
+            "message": str(exc),
+        }
+    output = (completed.stdout or completed.stderr).strip()
+    return {
+        "ok": completed.returncode == 0,
+        "command": list(command),
+        "message": output,
+    }
+
+
+def _print_install_result(results: list[dict[str, object]]) -> None:
+    for result in results:
+        command = " ".join(str(part) for part in result["command"])
+        if result["ok"]:
+            console.print(f"[green]OK:[/green] {command}")
+        else:
+            console.print(f"[red]FAILED:[/red] {command}")
+        if result["message"]:
+            console.print(str(result["message"]))
 
 
 def _print_doctor_result(result: dict[str, object]) -> None:

@@ -8,7 +8,7 @@ Async-first Python scraping on Playwright. Coherent profiles, persistent session
 
 ```bash
 pip install webskrap
-python -m playwright install chromium
+webskrap install
 ```
 
 ## First fetch

@@ -10,8 +10,8 @@ cd webskrap
 Install development dependencies:
 
 ```bash
-pip install -e ".[dev,docs]"
-python -m playwright install chromium
+pip install -e ".[dev]"
+webskrap install
 ```
 
 Run tests and lint:
@@ -21,10 +21,12 @@ pytest -q
 ruff check .
 ```
 
-Build docs:
+Build the web docs:
 
 ```bash
-zensical build
+cd web
+bun install
+bun run build
 ```
 
 Use the opt-in live tests only when you need to verify third-party bot-detection
@@ -45,7 +47,6 @@ The repository includes `uv.lock`, so you can run the same commands through
 ```bash
 uv run pytest -q
 uv run ruff check .
-uv run zensical build
 ```
 
 ## Publishing docs

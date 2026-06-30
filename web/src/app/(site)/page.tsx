@@ -35,7 +35,7 @@ const FEATURES = [
   {
     title: "Patchright stealth",
     description:
-      "Patchright-powered defaults produce realistic browser behavior for hardened targets.",
+      "Patchright ships with WebSkrap for stealth-oriented sessions and CLI fetches.",
   },
   {
     title: "Human-like clicks",
@@ -45,12 +45,12 @@ const FEATURES = [
   {
     title: "MCP server",
     description:
-      "Expose fetch and stealth_fetch as tools to agents over the Model Context Protocol.",
+      "Expose fetch and stealth_fetch tools to agents without extra Python packages.",
   },
   {
-    title: "CLI",
+    title: "LLM-friendly CLI",
     description:
-      "Drive fetches, sessions, and the doctor check from the terminal without writing code.",
+      "Use JSON, bounded output, stdout, and text-only fetches from the terminal.",
   },
 ];
 
@@ -70,7 +70,8 @@ async def main() -> None:
 asyncio.run(main())`;
 
 const INSTALL = `pip install webskrap
-python -m playwright install chromium`;
+webskrap install
+webskrap fetch https://example.com --format json --max-chars 12000`;
 
 export default function Home() {
   return (
@@ -105,15 +106,15 @@ export default function Home() {
           loading="eager"
         />
         <Badge variant="secondary" className="mb-6">
-          Async-first · Playwright · Stealth
+          Async-first · Playwright · Patchright · MCP
         </Badge>
         <h1 className="font-heading text-5xl font-bold tracking-tight sm:text-6xl">
           Scrape the web like a real browser
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
           WebSkrap is an async-first Python scraping framework built on Playwright. Coherent
-          browser profiles, persistent sessions, resource routing, and Patchright-powered stealth
-          for data collection that needs realistic behavior.
+          browser profiles, persistent sessions, resource routing, Patchright-powered stealth, and
+          machine-readable CLI output for data collection that needs realistic behavior.
         </p>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <Button size="xl" render={<Link href={DOCS_URL} />}>
@@ -133,7 +134,7 @@ export default function Home() {
       {/* Features */}
       <section className="mx-auto w-full max-w-5xl px-6 pb-24">
         <h2 className="mb-10 text-center font-heading text-3xl font-bold tracking-tight">
-          Everything you need for realistic scraping
+          Browser automation ready for agents and scripts
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((feature) => (

@@ -137,6 +137,8 @@ needed.
 
 ```bash
 webskrap fetch https://example.com
-webskrap fetch https://example.com --headed --screenshot example.png
+webskrap fetch https://example.com --format json --max-chars 12000
+webskrap fetch https://example.com --stdout --text-only
+webskrap fetch https://example.com --screenshot example.png
 webskrap fetch https://example.com --output example.html --resource-policy lite
 ```

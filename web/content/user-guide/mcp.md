@@ -7,8 +7,8 @@ scraping directly. It runs over stdio and exposes three tools.
 ## Install
 
 ```bash
-pip install "webskrap[mcp]"
-python -m playwright install chromium
+pip install webskrap
+webskrap install
 ```
 
 Run the server:
@@ -107,14 +107,8 @@ args = []
 
 ## Stealth
 
-`stealth_fetch` uses the Patchright driver, so it also needs the `stealth` extra:
-
-```bash
-pip install "webskrap[mcp,stealth]"
-patchright install chromium
-```
-
-It accepts the same controls as the [Stealth](/docs/user-guide/stealth) guide, including
+`stealth_fetch` uses the Patchright driver and accepts the same controls as the
+[Stealth](/docs/user-guide/stealth) guide, including
 `channel`, `headless`, `user_data_dir`, `patchright_context_profile`,
 `reduce_fingerprint_surface`, `mask_headless_user_agent`, and
 `webrtc_ip_handling_policy`.

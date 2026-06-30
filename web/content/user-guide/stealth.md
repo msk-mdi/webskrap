@@ -1,6 +1,6 @@
 # Stealth
 
-WebSkrap's stealth path is the optional Patchright driver.
+WebSkrap's stealth path is the Patchright driver.
 
 Patchright is a CDP-leak-free Playwright fork. WebSkrap does not inject
 JavaScript fingerprint patches; it relies on real browser behavior, persistent
@@ -10,11 +10,12 @@ contexts, and coherent profile settings instead.
 
 ## Patchright
 
-Use the optional Patchright driver for CDP-aware detection surfaces:
+Use Patchright for CDP-aware detection surfaces. `pip install webskrap` includes
+Patchright; `webskrap install` downloads its browser:
 
 ```bash
-pip install "webskrap[stealth]"
-patchright install chromium
+pip install webskrap
+webskrap install
 ```
 
 ```python
