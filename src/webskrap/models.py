@@ -273,7 +273,7 @@ class SessionConfig(BaseModel):
             # real fingerprint. The default keeps the host/browser environment
             # visible. The opt-in context profile below only applies settings
             # Chrome can expose natively through BrowserContext options.
-            options: dict[str, Any] = {"no_viewport": True, "focus_control": False}
+            options: dict[str, Any] = {"no_viewport": True}
             if self.patchright_context_profile:
                 options.update(
                     {

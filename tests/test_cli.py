@@ -158,7 +158,7 @@ def test_install_json_success(monkeypatch: Any) -> None:
 
 def test_install_json_failure(monkeypatch: Any) -> None:
     def fake_run(command: tuple[str, ...], **_kwargs: Any) -> subprocess.CompletedProcess[str]:
-        return_code = 1 if command[0] == "patchright" else 0
+        return_code = 1 if "patchright" in command else 0
         return subprocess.CompletedProcess(
             command,
             return_code,
@@ -180,7 +180,7 @@ def test_install_json_failure(monkeypatch: Any) -> None:
 
 def test_install_json_handles_missing_executable(monkeypatch: Any) -> None:
     def fake_run(command: tuple[str, ...], **_kwargs: Any) -> subprocess.CompletedProcess[str]:
-        if command[0] == "patchright":
+        if "patchright" in command:
             raise FileNotFoundError("missing patchright")
         return subprocess.CompletedProcess(command, 0, stdout="installed", stderr="")
 
@@ -206,6 +206,6 @@ def test_install_human_output(monkeypatch: Any) -> None:
     assert result.exit_code == 0, result.output
     assert "OK:" in result.output
     assert "playwright" in result.output
+    assert "patchright" in result.output
     assert "install" in result.output
     assert "chromium" in result.output
-    assert "patchright install chromium" in result.output

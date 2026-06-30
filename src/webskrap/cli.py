@@ -30,7 +30,7 @@ console = Console()
 OutputFormat = Literal["human", "json"]
 INSTALL_COMMANDS = (
     (sys.executable, "-m", "playwright", "install", "chromium"),
-    ("patchright", "install", "chromium"),
+    (sys.executable, "-m", "patchright", "install", "chromium"),
 )
 
 
