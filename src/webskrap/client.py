@@ -75,6 +75,7 @@ class WebSkrapSession:
         wait_until: WaitUntil = "domcontentloaded",
         screenshot: bool | str | Path = False,
         timeout_ms: float | None = None,
+        text_only: bool = False,
     ) -> FetchResult:
         self._ensure_open()
         started = time.perf_counter()
@@ -87,7 +88,7 @@ class WebSkrapSession:
                 timeout=timeout_ms or self.config.navigation_timeout_ms,
             )
             title = await page.title()
-            text = await page.content()
+            text = await page.locator("body").inner_text() if text_only else await page.content()
             screenshot_path = await _maybe_screenshot(page, screenshot)
             cookies = await self.context.cookies()
             elapsed_ms = (time.perf_counter() - started) * 1000
@@ -224,6 +225,7 @@ class WebSkrapClient:
         wait_until: WaitUntil = "domcontentloaded",
         screenshot: bool | str | Path = False,
         timeout_ms: float | None = None,
+        text_only: bool = False,
     ) -> FetchResult:
         name = f"_single_{uuid4().hex}"
         session = await self.session(name, config=config, profile=profile)
@@ -233,6 +235,7 @@ class WebSkrapClient:
                 wait_until=wait_until,
                 screenshot=screenshot,
                 timeout_ms=timeout_ms,
+                text_only=text_only,
             )
         finally:
             await session.close()

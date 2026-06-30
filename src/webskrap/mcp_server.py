@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from webskrap.client import WebSkrapClient, WebSkrapError
-from webskrap.models import SessionConfig
+from webskrap.models import SessionConfig, shape_fetch_result
 from webskrap.parsing import (
     parse_resource_policy,
     parse_wait_until,
@@ -26,23 +26,6 @@ except ImportError as exc:  # pragma: no cover - optional dependency
     raise WebSkrapError(msg) from exc
 
 mcp = FastMCP("webskrap")
-
-
-def _shape_result(result: Any, max_chars: int) -> dict[str, Any]:
-    text = result.text or ""
-    truncated = len(text) > max_chars
-    return {
-        "url": result.url,
-        "final_url": result.final_url,
-        "status": result.status,
-        "ok": result.ok,
-        "title": result.title,
-        "headers": result.headers,
-        "text": text[:max_chars],
-        "text_length": len(text),
-        "text_truncated": truncated,
-        "elapsed_ms": round(result.timings.get("elapsed_ms", 0.0), 1),
-    }
 
 
 @mcp.tool()
@@ -76,7 +59,7 @@ async def fetch(
             wait_until=parse_wait_until(wait_until),
             timeout_ms=timeout_ms,
         )
-    return _shape_result(result, max_chars)
+    return shape_fetch_result(result, max_chars)
 
 
 @mcp.tool()
@@ -131,7 +114,7 @@ async def stealth_fetch(
             config=config,
             timeout_ms=timeout_ms,
         )
-    return _shape_result(result, max_chars)
+    return shape_fetch_result(result, max_chars)
 
 
 @mcp.tool()

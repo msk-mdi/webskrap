@@ -97,6 +97,61 @@ class _Page:
         self.evaluations.append(script)
 
 
+class _Response:
+    status = 200
+    headers = {"content-type": "text/html"}
+
+
+class _BodyLocator:
+    async def inner_text(self) -> str:
+        return "Visible body"
+
+
+class _FetchPage:
+    url = "https://example.test/final"
+
+    def __init__(self) -> None:
+        self.content_called = False
+        self.closed = False
+        self.locators: list[str] = []
+        self.default_timeout: float | None = None
+        self.default_navigation_timeout: float | None = None
+
+    def set_default_timeout(self, timeout: float) -> None:
+        self.default_timeout = timeout
+
+    def set_default_navigation_timeout(self, timeout: float) -> None:
+        self.default_navigation_timeout = timeout
+
+    async def goto(self, *_args: object, **_kwargs: object) -> _Response:
+        return _Response()
+
+    async def title(self) -> str:
+        return "Example"
+
+    async def content(self) -> str:
+        self.content_called = True
+        return "<html><body>Visible body</body></html>"
+
+    def locator(self, selector: str) -> _BodyLocator:
+        self.locators.append(selector)
+        return _BodyLocator()
+
+    async def close(self) -> None:
+        self.closed = True
+
+
+class _FetchContext:
+    def __init__(self, page: _FetchPage) -> None:
+        self.page = page
+
+    async def new_page(self) -> _FetchPage:
+        return self.page
+
+    async def cookies(self) -> list[dict[str, object]]:
+        return []
+
+
 def _session() -> WebSkrapSession:
     return WebSkrapSession(
         name="test",
@@ -126,6 +181,24 @@ async def test_lite_resource_policy_allows_documents() -> None:
 
     assert route.aborted is False
     assert route.continued is True
+
+
+@pytest.mark.asyncio
+async def test_fetch_text_only_uses_body_inner_text() -> None:
+    page = _FetchPage()
+    session = WebSkrapSession(
+        name="test",
+        context=_FetchContext(page),  # type: ignore[arg-type]
+        config=SessionConfig(),
+        profile=get_profile(None),
+    )
+
+    result = await session.fetch("https://example.test", text_only=True)
+
+    assert result.text == "Visible body"
+    assert page.locators == ["body"]
+    assert page.content_called is False
+    assert page.closed is True
 
 
 @pytest.mark.asyncio

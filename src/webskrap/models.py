@@ -314,3 +314,20 @@ class FetchResult(BaseModel):
     cookies: list[dict[str, Any]]
     timings: dict[str, float]
     screenshot_path: Path | None = None
+
+
+def shape_fetch_result(result: FetchResult, max_chars: int) -> dict[str, Any]:
+    limit = max(0, max_chars)
+    text = result.text or ""
+    return {
+        "url": result.url,
+        "final_url": result.final_url,
+        "status": result.status,
+        "ok": result.ok,
+        "title": result.title,
+        "headers": result.headers,
+        "text": text[:limit],
+        "text_length": len(text),
+        "text_truncated": len(text) > limit,
+        "elapsed_ms": round(result.timings.get("elapsed_ms", 0.0), 1),
+    }

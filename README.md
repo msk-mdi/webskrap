@@ -362,15 +362,26 @@ flags, but pages that need WebGL or canvas export may not work correctly.
 
 ## CLI
 
+`webskrap fetch` always runs headless Patchright stealth mode. Install the
+stealth extra before using it. `webskrap doctor` verifies this CLI setup.
+
+```bash
+pip install "webskrap[stealth]"
+patchright install chromium
+```
+
 ```bash
 webskrap profiles
+webskrap profiles --format json
 webskrap doctor
+webskrap doctor --format json
 webskrap fetch https://example.com --profile desktop-chrome
-webskrap fetch https://example.com --headed --screenshot example.png
-webskrap fetch https://example.com --driver patchright --channel chrome --headed \
-  --user-data-dir .webskrap/patchright-profile
+webskrap fetch https://example.com --format json --max-chars 12000
+webskrap fetch https://example.com --stdout --text-only
+webskrap fetch https://example.com --screenshot example.png
+webskrap fetch https://example.com --channel chrome \
+  --user-data-dir .webskrap/headless-profile
 webskrap fetch https://amiunique.org/fr/fingerprint \
-  --driver patchright \
   --channel chrome \
   --mask-headless-user-agent \
   --patchright-context-profile \
