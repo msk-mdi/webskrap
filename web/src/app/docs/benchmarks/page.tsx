@@ -199,8 +199,8 @@ export default function BenchmarksPage() {
           </p>
         </div>
 
-        <Frame>
-          <FrameHeader>
+        <Frame className="gap-3 bg-transparent p-0">
+          <FrameHeader className="p-0">
             <FrameTitle>Feature comparison</FrameTitle>
             <FrameDescription>WebSkrap patchright vs other stacks</FrameDescription>
           </FrameHeader>
@@ -245,8 +245,8 @@ export default function BenchmarksPage() {
           </Table>
         </Frame>
 
-        <Frame>
-          <FrameHeader>
+        <Frame className="gap-3 bg-transparent p-0">
+          <FrameHeader className="p-0">
             <FrameTitle>Detection services</FrameTitle>
             <FrameDescription>Stock Playwright vs CloakBrowser vs WebSkrap patchright headed</FrameDescription>
           </FrameHeader>
@@ -285,8 +285,8 @@ export default function BenchmarksPage() {
           </Table>
         </Frame>
 
-        <Frame>
-          <FrameHeader>
+        <Frame className="gap-3 bg-transparent p-0">
+          <FrameHeader className="p-0">
             <FrameDescription>
               Latest WebSkrap live summary: 24 passed, 2 failed, 1 skipped. Headed: 17
               passed, 1 failed. Headless: 7 passed, 1 failed, 1 skipped. The two failures
@@ -309,8 +309,8 @@ export default function BenchmarksPage() {
           </p>
         </div>
 
-        <Frame>
-          <FrameHeader>
+        <Frame className="gap-3 bg-transparent p-0">
+          <FrameHeader className="p-0">
             <FrameTitle>Resource routing</FrameTitle>
             <FrameDescription>Full page load with delayed assets</FrameDescription>
           </FrameHeader>
@@ -344,8 +344,8 @@ export default function BenchmarksPage() {
           </FrameHeader>
         </Frame>
 
-        <Frame>
-          <FrameHeader>
+        <Frame className="gap-3 bg-transparent p-0">
+          <FrameHeader className="p-0">
             <FrameTitle>Session reuse</FrameTitle>
             <FrameDescription>Warm persistent session vs cold launch per fetch</FrameDescription>
           </FrameHeader>
@@ -377,8 +377,8 @@ export default function BenchmarksPage() {
           </FrameHeader>
         </Frame>
 
-        <Frame>
-          <FrameHeader>
+        <Frame className="gap-3 bg-transparent p-0">
+          <FrameHeader className="p-0">
             <FrameTitle>Concurrency</FrameTitle>
             <FrameDescription>8 pages per batch from one session</FrameDescription>
           </FrameHeader>
