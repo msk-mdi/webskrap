@@ -45,12 +45,12 @@ const FEATURES = [
   {
     title: "MCP server",
     description:
-      "Expose fetch and stealth_fetch tools to agents without extra Python packages.",
+      "fetch and stealth_fetch tools for Claude, Codex, and any MCP agent — returning clean text, not tag soup.",
   },
   {
-    title: "LLM-friendly CLI",
+    title: "Built for LLMs",
     description:
-      "Use JSON, bounded output, stdout, and text-only fetches from the terminal.",
+      "Clean-text output by default, 5-10x fewer tokens than raw HTML, plus JSON and bounded CLI output.",
   },
 ];
 
@@ -112,9 +112,10 @@ export default function Home() {
           Scrape the web like a real browser
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-          WebSkrap is an async-first Python scraping framework built on Playwright. Coherent
-          browser profiles, persistent sessions, resource routing, Patchright-powered stealth, and
-          machine-readable CLI output for data collection that needs realistic behavior.
+          WebSkrap is an async-first Python scraping framework built on Playwright — and a
+          first-class web tool for LLMs and agents. Coherent browser profiles, persistent sessions,
+          Patchright-powered stealth, and an MCP server that hands agents live pages as clean,
+          token-efficient text.
         </p>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <Button size="xl" render={<Link href={DOCS_URL} />}>

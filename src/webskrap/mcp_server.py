@@ -36,8 +36,12 @@ async def fetch(
     resource_policy: str = "all",
     timeout_ms: float = 30_000,
     max_chars: int = 20_000,
+    text_only: bool = True,
 ) -> dict[str, Any]:
     """Fetch a URL with a standard Playwright browser and return page data.
+
+    Returns clean visible page text by default (LLM-friendly, no HTML tags).
+    Set text_only=False to get the raw HTML instead.
 
     Args:
         url: The URL to load.
@@ -45,7 +49,8 @@ async def fetch(
         wait_until: commit, domcontentloaded, load, or networkidle.
         resource_policy: all, lite (block images/fonts/media), or documents.
         timeout_ms: Navigation timeout in milliseconds.
-        max_chars: Maximum characters of page HTML to return.
+        max_chars: Maximum characters of page text to return.
+        text_only: Return clean visible text (default) instead of raw HTML.
     """
     config = SessionConfig(
         navigation_timeout_ms=timeout_ms,
@@ -58,6 +63,7 @@ async def fetch(
             config=config,
             wait_until=parse_wait_until(wait_until),
             timeout_ms=timeout_ms,
+            text_only=text_only,
         )
     return shape_fetch_result(result, max_chars)
 
@@ -75,11 +81,14 @@ async def stealth_fetch(
     webrtc_ip_handling_policy: str | None = None,
     timeout_ms: float = 90_000,
     max_chars: int = 20_000,
+    text_only: bool = True,
 ) -> dict[str, Any]:
     """Fetch a URL with the Patchright stealth driver (CDP-leak-free).
 
-    Requires Patchright's browser download: webskrap install. Prefer
-    headless=False with channel="chrome" for the strictest anti-bot path.
+    Returns clean visible page text by default (LLM-friendly, no HTML tags).
+    Set text_only=False to get the raw HTML instead. Requires Patchright's
+    browser download: webskrap install. Prefer headless=False with
+    channel="chrome" for the strictest anti-bot path.
 
     Args:
         url: The URL to load.
@@ -93,7 +102,8 @@ async def stealth_fetch(
         webrtc_ip_handling_policy: Chromium WebRTC ICE policy, e.g.
             disable_non_proxied_udp.
         timeout_ms: Navigation timeout in milliseconds.
-        max_chars: Maximum characters of page HTML to return.
+        max_chars: Maximum characters of page text to return.
+        text_only: Return clean visible text (default) instead of raw HTML.
     """
     config = SessionConfig(
         driver="patchright",
@@ -112,6 +122,7 @@ async def stealth_fetch(
             profile=get_profile(profile),
             config=config,
             timeout_ms=timeout_ms,
+            text_only=text_only,
         )
     return shape_fetch_result(result, max_chars)
 

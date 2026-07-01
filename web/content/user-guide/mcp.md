@@ -1,8 +1,15 @@
 # MCP server
 
-WebSkrap ships an optional [Model Context Protocol](https://modelcontextprotocol.io)
-server. MCP clients such as Claude Desktop and Claude Code can call it to drive
-scraping directly. It runs over stdio and exposes three tools.
+WebSkrap ships a [Model Context Protocol](https://modelcontextprotocol.io)
+server. MCP clients such as Claude Desktop, Claude Code, and Codex can call it to
+drive a real browser directly. It runs over stdio and exposes three tools.
+
+**Built for LLMs.** `fetch` and `stealth_fetch` return clean visible page text
+by default — no HTML tags, scripts, or CSS noise — so the model spends tokens on
+content, not markup (typically 5-10x fewer tokens than raw HTML). `stealth_fetch`
+gives agents the same CDP-leak-free Patchright path the CLI uses, so anti-bot
+pages that block naive scrapers still load. Pass `text_only=false` when you
+actually need the HTML.
 
 ## Install
 
@@ -32,8 +39,9 @@ python -m webskrap.mcp_server
 | `doctor` | Check that Playwright and Chromium can launch. |
 
 Both fetch tools return `status`, `final_url`, `title`, `ok`, `headers`, and the
-page HTML in `text` (capped by `max_chars`, with `text_length` and
-`text_truncated` reporting the full size).
+page content in `text` (capped by `max_chars`, with `text_length` and
+`text_truncated` reporting the full size). By default `text` is clean visible
+text; set `text_only` to `false` to get raw HTML.
 
 ## Tool arguments
 
@@ -46,7 +54,8 @@ page HTML in `text` (capped by `max_chars`, with `text_length` and
 | `wait_until` | `domcontentloaded` | `commit`, `domcontentloaded`, `load`, or `networkidle`. |
 | `resource_policy` | `all` | `all`, `lite`, or `documents`. |
 | `timeout_ms` | `30000` | Navigation timeout. |
-| `max_chars` | `20000` | Maximum returned HTML characters. |
+| `max_chars` | `20000` | Maximum returned text characters. |
+| `text_only` | `true` | Return clean visible text; set `false` for raw HTML. |
 
 Example arguments:
 

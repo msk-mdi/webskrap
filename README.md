@@ -5,8 +5,8 @@
 <h1 align="center">WebSkrap</h1>
 
 <p align="center">
-   <strong>Async-first Python scraping framework built on Playwright.</strong><br>
-   <em>It provides coherent browser profiles, persistent sessions, resource routing, and Patchright-powered stealth for data collection workflows that need realistic browser behavior.</em>
+   <strong>Async-first Python scraping framework built on Playwright — and a first-class web tool for LLMs and agents.</strong><br>
+   <em>Coherent browser profiles, persistent sessions, resource routing, and Patchright-powered stealth for data collection workflows that need realistic browser behavior. Ships an MCP server so Claude, Codex, and any MCP agent can fetch live pages as clean, token-efficient text.</em>
 </p>
 
 WebSkrap does not include CAPTCHA solving, login-wall bypassing, credential bypassing, or access-control circumvention. Use it only on targets you are allowed to access.
@@ -396,9 +396,18 @@ stderr is not a TTY.
 
 ## MCP server
 
-WebSkrap ships an optional Model Context Protocol server so MCP clients (Claude
-Desktop, Claude Code, ...) can drive scraping directly. It exposes three tools
-over stdio: `fetch`, `stealth_fetch`, and `doctor`.
+WebSkrap ships a Model Context Protocol server so MCP clients (Claude Desktop,
+Claude Code, Codex, ...) can drive a real browser directly. It exposes three
+tools over stdio: `fetch`, `stealth_fetch`, and `doctor`.
+
+Built for LLMs: `fetch` and `stealth_fetch` return **clean visible page text by
+default** — no HTML tags, scripts, or style noise — so agents spend tokens on
+content, not markup (typically 5-10x fewer tokens than raw HTML). Pass
+`text_only=False` when you actually need the HTML. `stealth_fetch` gives agents
+the same CDP-leak-free Patchright path the CLI uses, so anti-bot pages that
+block naive scrapers still load. Every result carries `status`, `final_url`,
+`title`, `text_length`, and truncation flags so the model knows exactly what it
+got.
 
 ```bash
 pip install webskrap
