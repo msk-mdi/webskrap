@@ -117,6 +117,13 @@ webskrap fetch https://example.com --stdout --text-only
 webskrap fetch https://example.com --quiet --output page.html
 ```
 
+On Linux ARM64, the `chrome` channel can be unsupported. Prefer `chrome` where
+it launches, but use Chromium fallback on Linux ARM64:
+
+```bash
+webskrap fetch https://example.com --channel chromium --format json
+```
+
 `fetch --format json` prints bounded JSON to stdout using the MCP-compatible
 shape: `url`, `final_url`, `status`, `ok`, `title`, `headers`, `text`,
 `text_length`, `text_truncated`, and `elapsed_ms`.
