@@ -119,6 +119,9 @@ await session.human_click(
 )
 ```
 
+See the [Humanizer](/docs/user-guide/humanizer) guide for the focused behavior
+reference and safety boundaries.
+
 ## Common options
 
 ```python

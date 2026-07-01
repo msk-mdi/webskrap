@@ -69,6 +69,7 @@ def test_fetch_json_is_bounded_and_uses_headless_stealth(monkeypatch: Any) -> No
     assert config.driver == "patchright"
     assert config.headless is True
     assert config.channel == "chrome"
+    assert config.patchright_focus_control is None
 
 
 def test_fetch_stdout_prints_raw_content(monkeypatch: Any) -> None:

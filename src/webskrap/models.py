@@ -185,6 +185,9 @@ class SessionConfig(BaseModel):
     # scheme, reduced motion, and caller-provided extra headers) while still
     # avoiding viewport, user-agent, and JavaScript fingerprint patches.
     patchright_context_profile: bool = False
+    # Patchright-specific focus behavior control. Set to None to omit the option
+    # for Patchright versions that do not accept it.
+    patchright_focus_control: bool | None = False
 
     def launch_options(self) -> dict[str, Any]:
         options: dict[str, Any] = {
@@ -274,6 +277,8 @@ class SessionConfig(BaseModel):
             # visible. The opt-in context profile below only applies settings
             # Chrome can expose natively through BrowserContext options.
             options: dict[str, Any] = {"no_viewport": True}
+            if self.patchright_focus_control is not None:
+                options["focus_control"] = self.patchright_focus_control
             if self.patchright_context_profile:
                 options.update(
                     {

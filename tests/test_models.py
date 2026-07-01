@@ -61,6 +61,7 @@ def test_patchright_context_omits_profile_by_default() -> None:
     options = config.context_options(profile)
 
     assert options["no_viewport"] is True
+    assert options["focus_control"] is False
     assert "user_agent" not in options
     assert "extra_http_headers" not in options
 
@@ -83,6 +84,7 @@ def test_patchright_context_profile_applies_native_context_metadata() -> None:
     options = config.context_options(profile)
 
     assert options["no_viewport"] is True
+    assert options["focus_control"] is False
     assert options["locale"] == "en-US"
     assert options["timezone_id"] == "Europe/Paris"
     assert options["color_scheme"] == "dark"
@@ -94,6 +96,16 @@ def test_patchright_context_profile_applies_native_context_metadata() -> None:
     assert "device_scale_factor" not in options
     assert "is_mobile" not in options
     assert "has_touch" not in options
+
+
+def test_patchright_focus_control_can_be_omitted() -> None:
+    profile = BrowserProfile(name="test")
+    config = SessionConfig(driver="patchright", patchright_focus_control=None)
+
+    options = config.context_options(profile)
+
+    assert options["no_viewport"] is True
+    assert "focus_control" not in options
 
 
 def test_headless_chromium_gets_simulated_screen() -> None:
