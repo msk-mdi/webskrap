@@ -5,8 +5,8 @@
 <h1 align="center">WebSkrap</h1>
 
 <p align="center">
-   <strong>Async-first Python scraping framework built on Playwright — and a first-class web tool for LLMs and agents.</strong><br>
-   <em>Coherent browser profiles, persistent sessions, resource routing, and Patchright-powered stealth for data collection workflows that need realistic browser behavior. Ships an MCP server so Claude, Codex, and any MCP agent can fetch live pages as clean, token-efficient text.</em>
+   <strong>Async-first Python scraping framework built on Playwright that also works as a web tool for LLMs and agents.</strong><br>
+   <em>Coherent browser profiles, persistent sessions, resource routing, and Patchright-powered stealth for data collection that needs realistic browser behavior. Ships an MCP server so Claude, Codex, and any MCP agent can fetch live pages as plain text instead of raw HTML.</em>
 </p>
 
 WebSkrap does not include CAPTCHA solving, login-wall bypassing, credential bypassing, or access-control circumvention. Use it only on targets you are allowed to access.
@@ -403,11 +403,11 @@ tools over stdio: `fetch`, `stealth_fetch`, and `doctor`.
 Built for LLMs: both `fetch` and `stealth_fetch` run the same CDP-leak-free
 Patchright stealth path the CLI uses (headless Chrome, `networkidle` wait), so
 JS-heavy and anti-bot pages that block naive scrapers still load. They return
-**clean visible page text by default** — no HTML tags, scripts, or style noise —
+clean visible page text by default, with no HTML tags, scripts, or style noise,
 so agents spend tokens on content, not markup (typically 5-10x fewer tokens than
 raw HTML). Pass `text_only=False` when you actually need the HTML. Use
-`stealth_fetch` for finer control (fingerprint surface, WebRTC, UA masking,
-persistent profile). Every result carries `status`, `final_url`, `title`,
+`stealth_fetch` for finer control over fingerprint surface, WebRTC, UA masking,
+and persistent profiles. Every result carries `status`, `final_url`, `title`,
 `text_length`, and truncation flags so the model knows exactly what it got.
 
 ```bash
