@@ -1,6 +1,6 @@
 # WebSkrap
 
-Async-first Python scraping on Playwright. Coherent profiles, persistent sessions, resource routing, and Patchright-powered stealth.
+Async-first Python scraping on Playwright that also works as a web tool for LLMs and agents. You get coherent browser profiles, persistent sessions, resource routing, and Patchright-powered stealth. The MCP server runs that same stealth path, so agents get live pages back as plain text instead of raw HTML.
 
 > **⚠ Usage boundary** — WebSkrap does not include CAPTCHA solving, login-wall bypassing, credential bypassing, or access-control circumvention. Use it only on targets you are allowed to access.
 
@@ -38,4 +38,5 @@ asyncio.run(main())
 - [Profiles](/docs/user-guide/profiles)
 - [Stealth](/docs/user-guide/stealth)
 - [CLI](/docs/user-guide/cli)
+- [MCP Server](/docs/user-guide/mcp)
 - [API Reference](/docs/api-reference)

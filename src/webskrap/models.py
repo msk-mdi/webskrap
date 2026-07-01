@@ -185,9 +185,10 @@ class SessionConfig(BaseModel):
     # scheme, reduced motion, and caller-provided extra headers) while still
     # avoiding viewport, user-agent, and JavaScript fingerprint patches.
     patchright_context_profile: bool = False
-    # Patchright-specific focus behavior control. Set to None to omit the option
-    # for Patchright versions that do not accept it.
-    patchright_focus_control: bool | None = False
+    # Patchright-specific focus behavior control. Defaults to None so the option
+    # is omitted entirely; Patchright builds that lack focus_control reject it.
+    # Set True/False only when targeting a build that accepts the option.
+    patchright_focus_control: bool | None = None
 
     def launch_options(self) -> dict[str, Any]:
         options: dict[str, Any] = {
