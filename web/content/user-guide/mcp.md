@@ -4,12 +4,13 @@ WebSkrap ships a [Model Context Protocol](https://modelcontextprotocol.io)
 server. MCP clients such as Claude Desktop, Claude Code, and Codex can call it to
 drive a real browser directly. It runs over stdio and exposes three tools.
 
-**Built for LLMs.** `fetch` and `stealth_fetch` return clean visible page text
-by default — no HTML tags, scripts, or CSS noise — so the model spends tokens on
-content, not markup (typically 5-10x fewer tokens than raw HTML). `stealth_fetch`
-gives agents the same CDP-leak-free Patchright path the CLI uses, so anti-bot
-pages that block naive scrapers still load. Pass `text_only=false` when you
-actually need the HTML.
+**Built for LLMs.** Both `fetch` and `stealth_fetch` run the same CDP-leak-free
+Patchright stealth path the CLI uses (headless Chrome, `networkidle` wait), so
+JS-heavy and anti-bot pages that block naive scrapers still load. They return
+clean visible page text by default — no HTML tags, scripts, or CSS noise — so
+the model spends tokens on content, not markup (typically 5-10x fewer tokens
+than raw HTML). Use `stealth_fetch` for finer fingerprint/WebRTC/UA control.
+Pass `text_only=false` when you actually need the HTML.
 
 ## Install
 
@@ -34,8 +35,8 @@ python -m webskrap.mcp_server
 
 | Tool | Purpose |
 | --- | --- |
-| `fetch` | Fetch a URL with a standard Playwright browser. |
-| `stealth_fetch` | Fetch a URL with the Patchright stealth driver. |
+| `fetch` | Fetch a URL with the Patchright stealth driver (waits for `networkidle`). |
+| `stealth_fetch` | Same stealth driver with finer fingerprint/WebRTC/UA controls. |
 | `doctor` | Check that Playwright and Chromium can launch. |
 
 Both fetch tools return `status`, `final_url`, `title`, `ok`, `headers`, and the
@@ -51,9 +52,10 @@ text; set `text_only` to `false` to get raw HTML.
 | --- | --- | --- |
 | `url` | required | URL to load. |
 | `profile` | `desktop-chrome` | Bundled profile name. |
-| `wait_until` | `domcontentloaded` | `commit`, `domcontentloaded`, `load`, or `networkidle`. |
+| `channel` | `chrome` | Browser channel; use `chromium` on Linux ARM64. |
+| `wait_until` | `networkidle` | `commit`, `domcontentloaded`, `load`, or `networkidle`. |
 | `resource_policy` | `all` | `all`, `lite`, or `documents`. |
-| `timeout_ms` | `30000` | Navigation timeout. |
+| `timeout_ms` | `60000` | Navigation timeout. |
 | `max_chars` | `20000` | Maximum returned text characters. |
 | `text_only` | `true` | Return clean visible text; set `false` for raw HTML. |
 

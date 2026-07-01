@@ -143,8 +143,8 @@ webskrap-mcp
 
 MCP tools:
 
-- `fetch`: standard Playwright fetch.
-- `stealth_fetch`: Patchright fetch.
+- `fetch`: Patchright stealth fetch (headless Chrome, waits for networkidle).
+- `stealth_fetch`: stealth fetch with finer fingerprint/WebRTC/UA controls.
 - `doctor`: Playwright/Chromium MCP readiness check.
 
 ## Validation

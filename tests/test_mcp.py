@@ -46,6 +46,18 @@ def test_fetch_defaults_to_clean_text(monkeypatch: Any) -> None:
     assert result["text"] == "Readable body"
 
 
+def test_fetch_uses_stealth_driver_by_default(monkeypatch: Any) -> None:
+    _fake_client(monkeypatch)
+
+    asyncio.run(mcp_server.fetch("https://example.test"))
+
+    config = _FakeClient.calls[0]["config"]
+    assert config.driver == "patchright"
+    assert config.channel == "chrome"
+    assert config.headless is True
+    assert _FakeClient.calls[0]["wait_until"] == "networkidle"
+
+
 def test_fetch_text_only_false_returns_html(monkeypatch: Any) -> None:
     _fake_client(monkeypatch)
 

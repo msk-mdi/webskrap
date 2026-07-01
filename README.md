@@ -400,14 +400,15 @@ WebSkrap ships a Model Context Protocol server so MCP clients (Claude Desktop,
 Claude Code, Codex, ...) can drive a real browser directly. It exposes three
 tools over stdio: `fetch`, `stealth_fetch`, and `doctor`.
 
-Built for LLMs: `fetch` and `stealth_fetch` return **clean visible page text by
-default** — no HTML tags, scripts, or style noise — so agents spend tokens on
-content, not markup (typically 5-10x fewer tokens than raw HTML). Pass
-`text_only=False` when you actually need the HTML. `stealth_fetch` gives agents
-the same CDP-leak-free Patchright path the CLI uses, so anti-bot pages that
-block naive scrapers still load. Every result carries `status`, `final_url`,
-`title`, `text_length`, and truncation flags so the model knows exactly what it
-got.
+Built for LLMs: both `fetch` and `stealth_fetch` run the same CDP-leak-free
+Patchright stealth path the CLI uses (headless Chrome, `networkidle` wait), so
+JS-heavy and anti-bot pages that block naive scrapers still load. They return
+**clean visible page text by default** — no HTML tags, scripts, or style noise —
+so agents spend tokens on content, not markup (typically 5-10x fewer tokens than
+raw HTML). Pass `text_only=False` when you actually need the HTML. Use
+`stealth_fetch` for finer control (fingerprint surface, WebRTC, UA masking,
+persistent profile). Every result carries `status`, `final_url`, `title`,
+`text_length`, and truncation flags so the model knows exactly what it got.
 
 ```bash
 pip install webskrap

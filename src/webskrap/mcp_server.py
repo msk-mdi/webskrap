@@ -32,20 +32,27 @@ mcp = FastMCP("webskrap")
 async def fetch(
     url: str,
     profile: str = "desktop-chrome",
-    wait_until: str = "domcontentloaded",
+    channel: str = "chrome",
+    wait_until: str = "networkidle",
     resource_policy: str = "all",
-    timeout_ms: float = 30_000,
+    timeout_ms: float = 60_000,
     max_chars: int = 20_000,
     text_only: bool = True,
 ) -> dict[str, Any]:
-    """Fetch a URL with a standard Playwright browser and return page data.
+    """Fetch a URL with the Patchright stealth driver and return page data.
 
-    Returns clean visible page text by default (LLM-friendly, no HTML tags).
-    Set text_only=False to get the raw HTML instead.
+    Uses the same CDP-leak-free headless-Chrome stealth path as the CLI, so
+    JS-heavy and anti-bot pages that block naive scrapers still load. Waits for
+    networkidle by default so single-page apps have hydrated before reading.
+    Returns clean visible page text by default (LLM-friendly, no HTML tags); set
+    text_only=False to get the raw HTML instead. For finer stealth control
+    (fingerprint surface, WebRTC, UA masking, persistent profile) use
+    stealth_fetch.
 
     Args:
         url: The URL to load.
         profile: Bundled profile (desktop-chrome, desktop-edge, mobile-chrome).
+        channel: Browser channel, e.g. chrome. Use chromium on Linux ARM64.
         wait_until: commit, domcontentloaded, load, or networkidle.
         resource_policy: all, lite (block images/fonts/media), or documents.
         timeout_ms: Navigation timeout in milliseconds.
@@ -53,6 +60,9 @@ async def fetch(
         text_only: Return clean visible text (default) instead of raw HTML.
     """
     config = SessionConfig(
+        driver="patchright",
+        channel=channel,
+        headless=True,
         navigation_timeout_ms=timeout_ms,
         resource_policy=parse_resource_policy(resource_policy),
     )
