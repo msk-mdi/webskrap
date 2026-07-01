@@ -27,8 +27,7 @@ webskrap profiles
 - Patchright stealth sessions.
 - The `webskrap-mcp` server.
 
-The legacy extras `webskrap[stealth]` and `webskrap[mcp]` still install, but
-they are no longer required.
+No extras are needed; everything above ships with the base install.
 
 Use machine-readable setup output in automation:
 

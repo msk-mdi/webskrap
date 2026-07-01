@@ -979,7 +979,7 @@ wheels = [
 
 [[package]]
 name = "webskrap"
-version = "0.6.0"
+version = "0.6.1"
 source = { editable = "." }
 dependencies = [
     { name = "mcp" },
@@ -1009,4 +1009,4 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8" },
     { name = "typer", specifier = ">=0.15" },
 ]
-provides-extras = ["dev", "stealth", "mcp"]
+provides-extras = ["dev"]

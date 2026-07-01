@@ -78,7 +78,6 @@ class WebSkrapSession:
         started = time.perf_counter()
         page = await self.context.new_page()
         try:
-            _configure_page_timeouts(page, self.config)
             response = await page.goto(
                 url,
                 wait_until=wait_until,
@@ -361,11 +360,6 @@ def _resource_route_handler(policy: ResourcePolicy):
             await route.continue_()
 
     return handle
-
-
-def _configure_page_timeouts(page: Page, config: SessionConfig) -> None:
-    page.set_default_timeout(config.default_timeout_ms)
-    page.set_default_navigation_timeout(config.navigation_timeout_ms)
 
 
 def _human_click_point(

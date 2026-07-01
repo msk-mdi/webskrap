@@ -444,8 +444,7 @@ command = "webskrap-mcp"
 args = []
 ```
 
-The legacy extras `webskrap[mcp]` and `webskrap[stealth]` remain accepted for
-older install snippets, but MCP and Patchright are included by default.
+MCP and Patchright are included by default; no extras are needed.
 
 ## Performance benchmarks
 

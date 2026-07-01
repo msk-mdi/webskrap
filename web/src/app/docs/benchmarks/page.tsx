@@ -291,7 +291,7 @@ export default function BenchmarksPage() {
               Latest WebSkrap live summary: 24 passed, 2 failed, 1 skipped. Headed: 17
               passed, 1 failed. Headless: 7 passed, 1 failed, 1 skipped. The two failures
               were Sannysoft headed/headless networkidle timeouts; the headless skip was
-              reCAPTCHA v3 not returning a score from Google's public demo.
+              reCAPTCHA v3 not returning a score from Google&apos;s public demo.
             </FrameDescription>
           </FrameHeader>
         </Frame>

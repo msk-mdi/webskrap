@@ -346,7 +346,6 @@ async def _fetch(
         navigation_timeout_ms=timeout_ms,
         resource_policy=resource_policy,
         patchright_context_profile=patchright_context_profile,
-        patchright_focus_control=None,
         reduce_fingerprint_surface=reduce_fingerprint_surface,
         mask_headless_user_agent=mask_headless_user_agent,
         launch_args=launch_args,

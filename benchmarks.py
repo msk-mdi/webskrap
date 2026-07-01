@@ -48,12 +48,9 @@ _PIXEL_PNG = bytes.fromhex(
 
 def _build_page() -> str:
     images = "".join(f'<img src="/asset/img/{i}.png">' for i in range(N_IMAGES))
-    styles = "".join(
-        f'<link rel="stylesheet" href="/asset/css/{i}.css">' for i in range(N_STYLES)
-    )
+    styles = "".join(f'<link rel="stylesheet" href="/asset/css/{i}.css">' for i in range(N_STYLES))
     media = "".join(
-        f'<video src="/asset/media/{i}.mp4" preload="auto"></video>'
-        for i in range(N_MEDIA)
+        f'<video src="/asset/media/{i}.mp4" preload="auto"></video>' for i in range(N_MEDIA)
     )
     return (
         "<!doctype html><html><head><title>Benchmark</title>"
@@ -151,9 +148,7 @@ async def bench_warm_session(session) -> None:
 
 @benchmark
 async def bench_concurrent(session) -> None:
-    await asyncio.gather(
-        *(session.fetch(URL, wait_until="load") for _ in range(CONCURRENCY))
-    )
+    await asyncio.gather(*(session.fetch(URL, wait_until="load") for _ in range(CONCURRENCY)))
 
 
 def display(title: str, results: dict[str, float], baseline_key: str) -> None:
@@ -179,9 +174,7 @@ async def main() -> None:
                 ("LITE", ResourcePolicy.LITE),
                 ("DOCUMENTS", ResourcePolicy.DOCUMENTS),
             ):
-                session = await client.session(
-                    f"policy_{label}", config=_config(policy)
-                )
+                session = await client.session(f"policy_{label}", config=_config(policy))
                 policy_results[label] = await bench_policy(session)
             display(
                 "Resource routing (full page load with delayed assets)",
