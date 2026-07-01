@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import subprocess
 import sys
+import time
+import urllib.request
+from importlib import metadata
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -32,6 +36,69 @@ INSTALL_COMMANDS = (
     (sys.executable, "-m", "playwright", "install", "chromium"),
     (sys.executable, "-m", "patchright", "install", "chromium"),
 )
+UPDATE_CHECK_URL = "https://pypi.org/pypi/webskrap/json"
+UPDATE_CHECK_INTERVAL = 86_400  # once per day
+UPDATE_CHECK_CACHE = Path.home() / ".webskrap" / "update-check.json"
+# ponytail: ~/.webskrap not XDG/APPDATA-aware; swap to platformdirs if that matters
+
+
+def _is_newer(latest: str, current: str) -> bool:
+    # ponytail: naive X.Y.Z compare; swap to packaging.version if pre-release tags ever ship
+    try:
+        return tuple(map(int, latest.split("."))) > tuple(map(int, current.split(".")))
+    except ValueError:
+        return False
+
+
+def _check_for_update() -> None:
+    """Best-effort 'update available' notice. Never raises, never touches stdout."""
+    try:
+        if (
+            os.environ.get("WEBSKRAP_NO_UPDATE_CHECK")
+            or os.environ.get("CI")
+            or not sys.stderr.isatty()
+        ):
+            return
+
+        current = metadata.version("webskrap")
+        latest: str | None = None
+
+        try:
+            cached = json.loads(UPDATE_CHECK_CACHE.read_text())
+            if time.time() - cached["checked_at"] < UPDATE_CHECK_INTERVAL:
+                latest = cached["latest"]
+        except Exception:
+            latest = None
+
+        if latest is None:
+            fetched: str | None = None
+            try:
+                with urllib.request.urlopen(UPDATE_CHECK_URL, timeout=2) as response:
+                    fetched = json.load(response)["info"]["version"]
+            except Exception:
+                fetched = None
+            # Stamp the attempt either way so a PyPI outage can't cause hammering.
+            latest = fetched or current
+            try:
+                UPDATE_CHECK_CACHE.parent.mkdir(parents=True, exist_ok=True)
+                UPDATE_CHECK_CACHE.write_text(
+                    json.dumps({"checked_at": time.time(), "latest": latest})
+                )
+            except Exception:
+                pass
+
+        if _is_newer(latest, current):
+            Console(stderr=True, highlight=False).print(
+                f"[yellow]webskrap {latest} available[/] (you have {current}) — "
+                "upgrade: [bold]pip install -U webskrap[/]"
+            )
+    except Exception:
+        return
+
+
+@app.callback()
+def _main() -> None:
+    _check_for_update()
 
 
 @app.command("install")

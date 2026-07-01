@@ -389,6 +389,11 @@ webskrap fetch https://amiunique.org/fr/fingerprint \
 
 Use repeated `--launch-arg=...` options for advanced browser flags.
 
+The CLI checks PyPI once a day (best-effort) and prints an "update available"
+notice to stderr when a newer `webskrap` is released. Set
+`WEBSKRAP_NO_UPDATE_CHECK=1` to disable it; it is also skipped under `CI` and when
+stderr is not a TTY.
+
 ## MCP server
 
 WebSkrap ships an optional Model Context Protocol server so MCP clients (Claude
