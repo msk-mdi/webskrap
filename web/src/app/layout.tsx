@@ -19,9 +19,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WebSkrap — Async-first Python scraping framework",
+  title: "WebSkrap: async-first Python scraping for LLMs and agents",
   description:
-    "WebSkrap is an async-first Python scraping framework built on Playwright with browser profiles, persistent sessions, resource routing, and Patchright-powered stealth.",
+    "WebSkrap is an async-first Python scraping framework built on Playwright, with browser profiles, persistent sessions, resource routing, and Patchright-powered stealth. Its MCP server returns live pages as plain text for LLMs and agents.",
 };
 
 export default function RootLayout({
