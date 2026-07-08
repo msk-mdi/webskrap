@@ -1,3 +1,8 @@
+---
+title: Stealth Browser Scraping with Patchright
+description: Use Patchright-powered browser sessions in WebSkrap for stealth-oriented Python web scraping without CAPTCHA or access-control bypassing.
+---
+
 # Stealth
 
 WebSkrap's stealth path is the Patchright driver.

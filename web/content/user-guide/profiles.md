@@ -1,3 +1,8 @@
+---
+title: Browser Profiles for Playwright Scraping
+description: Configure coherent desktop and mobile browser profiles for Python web scraping with realistic locale, viewport, and headers.
+---
+
 # Profiles
 
 Profiles describe browser-visible settings such as viewport, locale, timezone, language headers, and device characteristics.

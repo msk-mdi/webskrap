@@ -1,3 +1,8 @@
+---
+title: Persistent Browser Sessions for Web Scraping
+description: Reuse cookies, local storage, browser profiles, and Playwright contexts across Python web scraping sessions.
+---
+
 # Sessions
 
 Sessions keep a browser context open across multiple requests.

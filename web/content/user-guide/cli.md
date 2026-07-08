@@ -1,3 +1,8 @@
+---
+title: WebSkrap CLI: Scrape Pages from the Terminal
+description: Use the WebSkrap command-line interface to fetch pages, return JSON, save HTML, and inspect browser scraping results.
+---
+
 # CLI
 
 WebSkrap installs the `webskrap` command.

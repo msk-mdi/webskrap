@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SEO_KEYWORDS, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 const interHeading = Inter({subsets:['latin'],variable:'--font-heading'});
 
@@ -19,9 +20,37 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WebSkrap: async-first Python scraping for LLMs and agents",
-  description:
-    "WebSkrap is an async-first Python scraping framework built on Playwright, with browser profiles, persistent sessions, resource routing, and Patchright-powered stealth. Its MCP server returns live pages as plain text for LLMs and agents.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: DEFAULT_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: DEFAULT_DESCRIPTION,
+  keywords: SEO_KEYWORDS,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    siteName: SITE_NAME,
+    images: [
+      {
+        url: "/webskrap-logo.png",
+        width: 512,
+        height: 512,
+        alt: "WebSkrap logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: ["/webskrap-logo.png"],
+  },
 };
 
 export default function RootLayout({

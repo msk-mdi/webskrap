@@ -29,6 +29,36 @@ const processor = unified()
 export interface RenderedDoc {
   html: string;
   title: string;
+  description?: string;
+}
+
+function parseFrontmatter(raw: string): { body: string; frontmatter: Record<string, string> } {
+  if (!raw.startsWith("---\n")) {
+    return { body: raw, frontmatter: {} };
+  }
+
+  const end = raw.indexOf("\n---", 4);
+  if (end === -1) {
+    return { body: raw, frontmatter: {} };
+  }
+
+  const block = raw.slice(4, end).trim();
+  const body = raw.slice(end + "\n---".length).replace(/^\n/, "");
+  const frontmatter = Object.fromEntries(
+    block
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const separator = line.indexOf(":");
+        if (separator === -1) return [line, ""];
+        const key = line.slice(0, separator).trim();
+        const value = line.slice(separator + 1).trim().replace(/^['\"]|['\"]$/g, "");
+        return [key, value];
+      }),
+  );
+
+  return { body, frontmatter };
 }
 
 export async function getDoc(slug: string[]): Promise<RenderedDoc | null> {
@@ -45,11 +75,12 @@ export async function getDoc(slug: string[]): Promise<RenderedDoc | null> {
     return null;
   }
 
-  const title = raw.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? "WebSkrap Docs";
-  let html = String(await processor.process(raw));
+  const { body, frontmatter } = parseFrontmatter(raw);
+  const title = frontmatter.title ?? body.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? "WebSkrap Docs";
+  let html = String(await processor.process(body));
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
   if (basePath) {
     html = html.replaceAll('href="/', `href="${basePath}/`);
   }
-  return { html, title };
+  return { html, title, description: frontmatter.description };
 }

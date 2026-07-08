@@ -1,3 +1,8 @@
+---
+title: WebSkrap Client API for Browser Automation
+description: Use WebSkrapClient for one-shot browser fetches, async scraping workflows, screenshots, and Playwright lifecycle management.
+---
+
 # Client
 
 `WebSkrapClient` owns the Playwright lifecycle.

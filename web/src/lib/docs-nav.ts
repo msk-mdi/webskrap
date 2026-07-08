@@ -31,6 +31,16 @@ export const NAV: NavSection[] = [
     ],
   },
   {
+    title: "Guides",
+    items: [
+      { title: "Python Web Scraping", href: "/docs/guides/python-web-scraping" },
+      { title: "Scrape JavaScript Pages", href: "/docs/guides/scrape-javascript-pages" },
+      { title: "Web Crawling with Python", href: "/docs/guides/web-crawling-with-python" },
+      { title: "LLM Web Scraping", href: "/docs/guides/llm-web-scraping" },
+      { title: "WebSkrap vs Playwright", href: "/docs/comparisons/webskrap-vs-playwright" },
+    ],
+  },
+  {
     title: "Reference",
     items: [
       { title: "API Reference", href: "/docs/api-reference" },

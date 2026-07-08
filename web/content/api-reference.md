@@ -1,3 +1,8 @@
+---
+title: WebSkrap Python API Reference
+description: Reference for WebSkrapClient, WebSkrapSession, FetchResult, SessionConfig, BrowserProfile, resource policies, and proxy configuration.
+---
+
 # API Reference
 
 > Full typed signatures and docstrings live in the source. Browse them on [GitHub](https://github.com/kacigaya/webskrap/tree/main/src/webskrap).

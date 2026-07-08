@@ -1,3 +1,8 @@
+---
+title: Install WebSkrap for Python Web Scraping
+description: Install WebSkrap, Playwright browsers, Patchright support, and the CLI for Python web scraping and browser automation.
+---
+
 # Installation
 
 Install WebSkrap from PyPI:

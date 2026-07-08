@@ -1,3 +1,8 @@
+---
+title: Resource Routing for Faster Web Scraping
+description: Use WebSkrap resource policies to block heavy assets, trackers, images, and fonts for faster Playwright scraping.
+---
+
 # Resource policy
 
 Resource policies control which request types are allowed.

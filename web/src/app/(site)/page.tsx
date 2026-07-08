@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "@/components/code-block";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { asset } from "@/lib/asset";
+import { DEFAULT_DESCRIPTION, SITE_URL } from "@/lib/seo";
 
 const DOCS_URL = "/docs";
 const GITHUB_URL = "https://github.com/kacigaya/webskrap";
@@ -73,9 +74,36 @@ const INSTALL = `pip install webskrap
 webskrap install
 webskrap fetch https://example.com --format json --max-chars 12000`;
 
+const SOFTWARE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "WebSkrap",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Linux, macOS, Windows",
+  programmingLanguage: "Python",
+  description: DEFAULT_DESCRIPTION,
+  url: SITE_URL,
+  codeRepository: GITHUB_URL,
+  downloadUrl: PYPI_URL,
+  author: {
+    "@type": "Person",
+    name: "Gaya KACI",
+    url: "https://github.com/kacigaya",
+  },
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+};
+
 export default function Home() {
   return (
     <main className="flex flex-1 flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(SOFTWARE_SCHEMA) }}
+      />
       {/* Nav */}
       <header className="sticky top-0 z-20 px-4 pt-4">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between rounded-2xl border bg-background/70 px-5 py-3 shadow-sm backdrop-blur-md">
@@ -109,13 +137,16 @@ export default function Home() {
           Async-first · Playwright · Patchright · MCP
         </Badge>
         <h1 className="font-heading text-5xl font-bold tracking-tight sm:text-6xl">
-          Scrape the web like a real browser
+          Python Web Scraping with Playwright and Patchright
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-          WebSkrap is an async-first Python scraping framework built on Playwright that also works
-          as a web tool for LLMs and agents. You get coherent browser profiles, persistent sessions,
-          Patchright-powered stealth, and an MCP server that returns live pages as plain text
-          instead of raw HTML.
+          WebSkrap is an async-first Python web scraping and browser automation toolkit for
+          scraping JavaScript-heavy pages, managing persistent browser sessions, and exposing
+          clean page text to LLM agents through MCP.
+        </p>
+        <p className="mt-4 max-w-2xl text-base text-muted-foreground">
+          Scrape the web like a real browser with Playwright, Patchright stealth sessions,
+          resource routing, browser profiles, and clean CLI output for crawlers and agents.
         </p>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <Button size="xl" render={<Link href={DOCS_URL} />}>

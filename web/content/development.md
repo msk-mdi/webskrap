@@ -1,3 +1,8 @@
+---
+title: Developing WebSkrap
+description: Development notes for contributing to WebSkrap, running tests, browser integrations, and maintaining the Python scraping package.
+---
+
 # Development
 
 Clone the repository:

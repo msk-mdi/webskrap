@@ -1,3 +1,8 @@
+---
+title: MCP Web Scraping Server for AI Agents
+description: Run WebSkrap as an MCP server so LLM agents can fetch live browser-rendered pages as clean text.
+---
+
 # MCP server
 
 WebSkrap ships a [Model Context Protocol](https://modelcontextprotocol.io)
