@@ -42,9 +42,3 @@ await session.human_click(
     modifiers=["Shift"],
 )
 ```
-
-## Boundaries
-
-Humanized clicks do not solve CAPTCHAs, bypass login walls, evade access
-controls, or grant permission to scrape restricted targets. Use them only on
-sites and workflows you are allowed to access.

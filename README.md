@@ -9,8 +9,6 @@
    <em>Coherent browser profiles, persistent sessions, resource routing, and Patchright-powered stealth for data collection that needs realistic browser behavior. Ships an MCP server so Claude, Codex, and any MCP agent can fetch live pages as plain text instead of raw HTML.</em>
 </p>
 
-WebSkrap does not include CAPTCHA solving, login-wall bypassing, credential bypassing, or access-control circumvention. Use it only on targets you are allowed to access.
-
 Documentation: [https://kacigaya.github.io/webskrap/](https://kacigaya.github.io/webskrap/)
 
 ## Install

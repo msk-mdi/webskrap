@@ -89,7 +89,7 @@ const DETECTION_ROWS: {
     stock: "FAIL",
     cloak: "PASS",
     webskrap: "PASS",
-    notes: "Public demo renders the challenge surface; WebSkrap does not solve it",
+    notes: "Public demo renders the challenge surface",
   },
   {
     service: "FingerprintJS bot detection",

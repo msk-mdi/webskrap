@@ -143,6 +143,3 @@ native browser controls you need:
   "webrtc_ip_handling_policy": "disable_non_proxied_udp"
 }
 ```
-
-The MCP server does not solve CAPTCHA challenges, bypass login walls, bypass
-credential checks, or circumvent access controls.

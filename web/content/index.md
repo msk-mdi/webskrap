@@ -7,8 +7,6 @@ description: Documentation for WebSkrap, a Python web scraping and browser autom
 
 Async-first Python scraping on Playwright that also works as a web tool for LLMs and agents. You get coherent browser profiles, persistent sessions, resource routing, and Patchright-powered stealth. The MCP server runs that same stealth path, so agents get live pages back as plain text instead of raw HTML.
 
-> **⚠ Usage boundary** — WebSkrap does not include CAPTCHA solving, login-wall bypassing, credential bypassing, or access-control circumvention. Use it only on targets you are allowed to access.
-
 ## Install
 
 ```bash

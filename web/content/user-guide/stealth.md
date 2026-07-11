@@ -11,8 +11,6 @@ Patchright is a CDP-leak-free Playwright fork. WebSkrap does not inject
 JavaScript fingerprint patches; it relies on real browser behavior, persistent
 contexts, and coherent profile settings instead.
 
-> **⚠ Boundary** — WebSkrap does not solve CAPTCHA challenges, bypass login walls, bypass credential checks, or circumvent access controls.
-
 ## Patchright
 
 Use Patchright for CDP-aware detection surfaces. `pip install webskrap` includes
