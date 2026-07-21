@@ -17,7 +17,12 @@ Install into a virtual environment to keep it isolated from system Python:
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
+# Windows (PowerShell):
+.venv\Scripts\Activate.ps1
+# Windows (cmd.exe):
+.venv\Scripts\activate.bat
 pip install webskrap
 webskrap install
 ```
