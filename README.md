@@ -13,7 +13,11 @@ Documentation: [https://kacigaya.github.io/webskrap/](https://kacigaya.github.io
 
 ## Install
 
+Install into a virtual environment to keep it isolated from system Python:
+
 ```bash
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install webskrap
 webskrap install
 ```
@@ -483,7 +487,11 @@ Fetching 8 pages per batch from one session averages ~109 ms per page.
 
 ## Development
 
+Work inside a virtual environment so dependencies stay isolated from system Python:
+
 ```bash
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 pytest
 ruff check .
