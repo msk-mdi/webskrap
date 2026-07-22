@@ -33,9 +33,12 @@ Prefer current repo sources over memory:
 
 ## Python API
 
-Install normal API/browser support:
+Install normal API/browser support inside a virtual environment to keep it
+isolated from system Python:
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install webskrap
 webskrap install
 ```
@@ -104,6 +107,7 @@ The CLI `fetch` command always uses headless Patchright stealth mode.
 `webskrap doctor` checks this CLI setup.
 
 ```bash
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install webskrap
 webskrap install
 
@@ -136,6 +140,7 @@ readable body text.
 Install MCP support when an MCP client should call WebSkrap directly:
 
 ```bash
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install webskrap
 webskrap install
 webskrap-mcp
